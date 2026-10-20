@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "ScrollSafe",
+  "version": "0.1.0",
+  "description": "Warns you while you scroll TikTok and Instagram Reels if a video may be a deepfake, AI-made, a scam or false information.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.tiktok.com/*",
+        "*://*.instagram.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "ScrollSafe",
+    "default_popup": "popup.html"
+  }
+}

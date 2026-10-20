@@ -1,0 +1,43 @@
+# Secrets and local data
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite3
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Model / tool caches
+.cache/
+hf_cache/
+.huggingface/
+
+# Logs and packaged builds
+*.log
+*.zip
+*.crx
+*.pem
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Claude / AI assistant files (never push)
+CLAUDE.md
+claude.md
+**/CLAUDE.md
+*SKILL.md
+*skill.md
+**/SKILL.md
+.claude/
+.claude*

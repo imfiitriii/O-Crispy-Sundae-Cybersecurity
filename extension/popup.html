@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font: 15px/1.4 system-ui, sans-serif; width: 300px; margin: 0; padding: 16px; color: #1b1b1b; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    p.sub { margin: 0 0 14px; color: #555; font-size: 13px; }
+    label.row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid #eee; }
+    input[type=checkbox] { width: 20px; height: 20px; }
+    input[type=text] { width: 100%; box-sizing: border-box; padding: 6px; font-size: 13px; margin-top: 4px; }
+    #status { font-size: 13px; margin-top: 10px; }
+    .ok { color: #1a7f37; } .bad { color: #b42318; }
+  </style>
+</head>
+<body>
+  <h1>🛡️ ScrollSafe</h1>
+  <p class="sub">Warns you about deepfakes, AI-made videos, scams and false information while you scroll.</p>
+  <label class="row">Turn on ScrollSafe <input type="checkbox" id="enabled"></label>
+  <label class="row">Large text <input type="checkbox" id="largeText"></label>
+  <label class="row">Read warnings aloud <input type="checkbox" id="readAloud"></label>
+  <label class="row"><span>AI helper (Gemini)<br><small style="color:#555">More accurate, but slower</small></span> <input type="checkbox" id="useGemini"></label>
+  <div style="border-top:1px solid #eee;padding-top:8px">
+    <div style="font-size:13px">Checking server</div>
+    <input type="text" id="backendUrl" placeholder="http://localhost:8000">
+  </div>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ScrollSafe: Check a Video</title>
+  <style>
+    :root { --bg: #f7f7f5; --card: #fff; --text: #1b1b1b; --muted: #555; --border: #ddd; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #151515; --card: #222; --text: #eee; --muted: #aaa; --border: #444; } }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 18px/1.5 system-ui, sans-serif; }
+    main { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
+    h1 { font-size: 30px; margin: 0 0 4px; }
+    p.sub { color: var(--muted); margin: 0 0 24px; }
+    .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    input[type=file] { font-size: 16px; width: 100%; }
+    textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; margin-top: 12px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: inherit; }
+    button { margin-top: 14px; font: inherit; font-weight: 600; padding: 12px 22px; border-radius: 12px; border: 0; background: #0b57d0; color: #fff; cursor: pointer; }
+    button:disabled { opacity: .6; }
+    #result { margin-top: 20px; }
+    .verdict { border-radius: 16px; padding: 18px; border-left: 10px solid #888; background: var(--card); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .green { border-left-color: #1a7f37; } .yellow { border-left-color: #d4a106; } .red { border-left-color: #c62828; }
+    .verdict h2 { margin: 0; font-size: 24px; }
+    .verdict ul { color: var(--muted); font-size: 16px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🛡️ ScrollSafe</h1>
+  <p class="sub">Not sure about a photo or video? Upload it and we'll look for signs of deepfakes, AI, scams or false information.</p>
+  <div class="box">
+    <input type="file" id="file" accept="image/*,video/*">
+    <textarea id="caption" rows="2" placeholder="Optional: paste the caption or message that came with it"></textarea>
+    <button id="go">Check it</button>
+  </div>
+  <div id="result"></div>
+</main>
+<script>
+  const ICON = { green: "🟢", yellow: "🟡", red: "🔴", unknown: "⚪" };
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  document.getElementById("go").onclick = async () => {
+    const file = document.getElementById("file").files[0];
+    const out = document.getElementById("result");
+    if (!file) { out.textContent = "Please choose a photo or video first."; return; }
+    const btn = document.getElementById("go");
+    btn.disabled = true; out.textContent = "⏳ Checking… this can take a few seconds.";
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const caption = encodeURIComponent(document.getElementById("caption").value);
+      const res = await fetch("/check-upload?caption=" + caption, { method: "POST", body: form });
+      const v = await res.json();
+      if (!res.ok) throw new Error(v.detail || "Something went wrong");
+      const facts = (v.fact_checks || []).filter((f) => f.match === "match");
+      out.innerHTML = `<div class="verdict ${esc(v.status)}">
+        <h2>${ICON[v.status] || "⚪"} ${esc(v.title)}</h2>
+        <p>${esc(v.message)}</p>
+        <ul>${(v.details || []).map((d) => `<li>${esc(d)}</li>`).join("")}
+        ${facts.map((f) => `<li><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.publisher)}: ${esc(f.rating)}</a></li>`).join("")}</ul>
+      </div>`;
+    } catch (e) {
+      out.textContent = "Couldn't check this file: " + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  };
+</script>
+</body>
+</html>

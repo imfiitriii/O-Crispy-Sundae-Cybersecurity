@@ -7,7 +7,7 @@ async function checkServer(url) {
     const res = await fetch(url.replace(/\/+$/, "") + "/health", { headers: { "ngrok-skip-browser-warning": "1" } });
     const h = await res.json();
     el.className = "ok";
-    el.textContent = `Server connected. AI helper: ${h.gemini ? "on" : "off"}, fact-check: ${h.fact_check ? "on" : "off"}.`;
+    el.textContent = `Connected · AI helper ${h.gemini ? "on" : "off"} · Fact-check ${h.fact_check ? "on" : "off"}`;
   } catch {
     el.className = "bad";
     el.textContent = "Can't reach the checking server.";

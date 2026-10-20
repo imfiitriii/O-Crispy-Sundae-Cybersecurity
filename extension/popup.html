@@ -3,28 +3,58 @@
 <head>
   <meta charset="utf-8">
   <style>
-    body { font: 15px/1.4 system-ui, sans-serif; width: 300px; margin: 0; padding: 16px; color: #1b1b1b; }
-    h1 { font-size: 18px; margin: 0 0 4px; }
-    p.sub { margin: 0 0 14px; color: #555; font-size: 13px; }
-    label.row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid #eee; }
-    input[type=checkbox] { width: 20px; height: 20px; }
-    input[type=text] { width: 100%; box-sizing: border-box; padding: 6px; font-size: 13px; margin-top: 4px; }
-    #status { font-size: 13px; margin-top: 10px; }
-    .ok { color: #1a7f37; } .bad { color: #b42318; }
+    :root { --ink: #0f172a; --sub: #475569; --muted: #94a3b8; --line: #e2e8f0; --blue: #2563eb; }
+    * { box-sizing: border-box; }
+    body { font: 14.5px/1.4 Inter, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; width: 330px; margin: 0; color: var(--ink); background: #fff; }
+    header { display: flex; align-items: center; gap: 12px; padding: 18px 18px 12px; }
+    .logo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; flex: none;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 10px rgba(37,99,235,.3); }
+    .logo svg { width: 22px; height: 22px; }
+    h1 { font-size: 17px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+    header p { margin: 2px 0 0; color: var(--sub); font-size: 12.5px; }
+    .settings { padding: 0 18px 6px; }
+    label.row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); cursor: pointer; }
+    .t { font-weight: 500; }
+    .d { display: block; font-size: 12.5px; color: var(--sub); margin-top: 1px; }
+    /* on/off switch */
+    input[type=checkbox] { appearance: none; margin: 0 0 0 auto; width: 40px; height: 24px; border-radius: 12px; background: #cbd5e1;
+                           position: relative; cursor: pointer; flex: none; transition: background .15s; }
+    input[type=checkbox]::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+                                  background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: left .15s; }
+    input[type=checkbox]:checked { background: var(--blue); }
+    input[type=checkbox]:checked::after { left: 19px; }
+    input[type=checkbox]:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+    footer { background: #f8fafc; border-top: 1px solid var(--line); padding: 12px 18px 16px; }
+    .label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+    input[type=text] { width: 100%; margin-top: 6px; padding: 8px 10px; font: inherit; font-size: 13px; color: var(--ink);
+                       border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+    input[type=text]:focus { outline: 2px solid #93c5fd; border-color: #93c5fd; }
+    #status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--sub); margin-top: 10px; }
+    #status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+    #status.ok::before { background: #16a34a; }
+    #status.bad { color: #b91c1c; }
+    #status.bad::before { background: #dc2626; }
   </style>
 </head>
 <body>
-  <h1>🛡️ ScrollSafe</h1>
-  <p class="sub">Warns you about deepfakes, AI-made videos, scams and false information while you scroll.</p>
-  <label class="row">Turn on ScrollSafe <input type="checkbox" id="enabled"></label>
-  <label class="row">Large text <input type="checkbox" id="largeText"></label>
-  <label class="row">Read warnings aloud <input type="checkbox" id="readAloud"></label>
-  <label class="row"><span>AI helper (Gemini)<br><small style="color:#555">More accurate, but slower</small></span> <input type="checkbox" id="useGemini"></label>
-  <div style="border-top:1px solid #eee;padding-top:8px">
-    <div style="font-size:13px">Checking server</div>
-    <input type="text" id="backendUrl" placeholder="http://localhost:8000">
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+    <div>
+      <h1>ScrollSafe</h1>
+      <p>Warns you about deepfakes, AI videos, scams and false claims.</p>
+    </div>
+  </header>
+  <div class="settings">
+    <label class="row"><span class="t">Turn on ScrollSafe</span><input type="checkbox" id="enabled"></label>
+    <label class="row"><span><span class="t">Large text</span><span class="d">Bigger words on the badge</span></span><input type="checkbox" id="largeText"></label>
+    <label class="row"><span><span class="t">Read warnings aloud</span><span class="d">Speaks red warnings</span></span><input type="checkbox" id="readAloud"></label>
+    <label class="row"><span><span class="t">AI helper (Gemini)</span><span class="d">More accurate, but slower</span></span><input type="checkbox" id="useGemini"></label>
   </div>
-  <div id="status"></div>
+  <footer>
+    <div class="label">Checking server</div>
+    <input type="text" id="backendUrl" placeholder="http://localhost:8000">
+    <div id="status">Checking connection…</div>
+  </footer>
   <script src="popup.js"></script>
 </body>
 </html>

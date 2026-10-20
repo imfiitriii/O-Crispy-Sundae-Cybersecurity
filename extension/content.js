@@ -196,57 +196,125 @@
     const root = host.attachShadow({ mode: "open" });
     root.innerHTML = `
       <style>
-        .card { font: 15px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; width: 280px; border-radius: 14px;
-                padding: 12px 14px; color: #111; background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.35); border-left: 8px solid #999; }
-        .card.large { font-size: 19px; width: 340px; }
-        .green { border-color: #1a7f37; } .yellow { border-color: #d4a106; } .red { border-color: #c62828; background: #fff5f5; }
-        .checking, .error, .unknown { border-color: #888; }
-        .head { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1em; }
-        .msg { margin-top: 4px; }
-        .row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-        button { font: inherit; font-size: .85em; border: 1px solid #ccc; background: #f6f6f6; border-radius: 8px; padding: 5px 9px; cursor: pointer; }
-        button:hover { background: #ececec; }
-        ul { margin: 8px 0 0; padding-left: 18px; font-size: .88em; color: #333; }
-        a { color: #0b57d0; }
-        .x { margin-left: auto; border: 0; background: none; font-size: 1.1em; padding: 0 4px; }
-        .min { cursor: pointer; width: auto; padding: 8px 12px; }
+        :host { --ink: #0f172a; --sub: #475569; --muted: #94a3b8; --line: #e2e8f0; --blue: #2563eb; }
+        .card { font: 15px/1.45 Inter, "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+                width: 330px; box-sizing: border-box; border-radius: 16px; padding: 14px 16px 14px 18px; color: var(--ink); background: #fff;
+                position: relative; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(15,23,42,.28);
+                --c: var(--muted); --t: #f1f5f9; }
+        .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--c); }
+        .card.large { font-size: 19px; width: 410px; }
+        .green { --c: #16a34a; --t: #f0fdf4; } .yellow { --c: #d97706; --t: #fffbeb; } .red { --c: #dc2626; --t: #fef2f2; }
+        .head { display: flex; align-items: center; gap: 10px; }
+        .ico { width: 32px; height: 32px; border-radius: 10px; background: var(--t); color: var(--c); display: grid; place-items: center; flex: none; }
+        .large .ico { width: 40px; height: 40px; }
+        .ico svg { width: 60%; height: 60%; }
+        .title { font-size: 1.13em; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; }
+        .brand { font-size: .7em; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+        .x { margin-left: auto; align-self: flex-start; border: 0; background: none; color: var(--muted); padding: 4px; border-radius: 8px; cursor: pointer; display: grid; }
+        .x:hover { background: #f1f5f9; color: var(--sub); }
+        .x svg { width: 1.05em; height: 1.05em; }
+        .msg { margin-top: 10px; font-size: 1em; line-height: 1.45; }
+        .more { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+        .reasons { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: .9em; color: var(--sub); }
+        .reasons li { display: flex; gap: 8px; line-height: 1.4; }
+        .reasons li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); margin-top: .55em; flex: none; }
+        .source { font-size: .88em; color: var(--blue); font-weight: 500; text-decoration: none; }
+        .source:hover { text-decoration: underline; }
+        .scores { display: grid; gap: 6px; }
+        .score { display: grid; grid-template-columns: 5.2em 1fr 2.8em; align-items: center; gap: 8px; font-size: .8em; color: var(--sub); }
+        .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+        .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
+        .score b { text-align: right; font-weight: 600; color: var(--ink); }
+        .note { font-size: .78em; color: var(--muted); }
+        .row { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+        .btn { font: inherit; display: inline-flex; align-items: center; gap: 6px; font-size: .9em; font-weight: 600; color: var(--ink); white-space: nowrap;
+               border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+        .btn:hover { background: #f8fafc; }
+        .btn:disabled { cursor: default; opacity: .7; }
+        .btn svg { width: 1.05em; height: 1.05em; color: var(--sub); }
+        .btn.dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+        .btn.dark:hover { background: #1e293b; }
+        .btn.dark svg { color: #cbd5e1; }
+        /* Small pill: made smaller, and while checking */
+        .card.min { width: auto; padding: 6px 14px 6px 6px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px;
+                    font-weight: 600; font-size: 14px; cursor: pointer; }
+        .card.min.large { font-size: 18px; }
+        .card.min::before { display: none; }
+        .card.checking { cursor: default; }
+        .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--t); color: var(--c); display: grid; place-items: center; flex: none; }
+        .dot svg { width: 14px; height: 14px; }
+        .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #dbeafe; border-top-color: var(--blue); animation: spin .8s linear infinite; }
+        .checking .dot { background: #eff6ff; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       </style>
       <div class="card" part="card"></div>`;
     const card = root.querySelector(".card");
     let minimized = false, expanded = false, last = null;
     (document.body || document.documentElement).appendChild(host);
 
-    const ICON = { green: "🟢", yellow: "🟡", red: "🔴", checking: "⏳", error: "⚪", unknown: "⚪" };
+    // Simple line icons instead of emoji, so they look the same on every computer.
+    const svg = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+    const TICK = '<path d="m9 12 2 2 4-4"/>';
+    const BANG = '<path d="M12 8v5M12 16.5h.01"/>';
+    const ICON = {
+      green: svg('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' + TICK),
+      yellow: svg('<circle cx="12" cy="12" r="10"/>' + BANG),
+      red: svg('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'),
+      grey: svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
+    };
+    const PILL_BANG = svg('<path d="M12 5v9M12 19h.01"/>', 3.2);
+    const PILL = { green: svg('<path d="m5 12 5 5 9-10"/>', 2.8), yellow: PILL_BANG, red: PILL_BANG, grey: PILL_BANG };
+    const I_X = svg('<path d="M18 6 6 18M6 6l12 12"/>');
+    const I_INFO = svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>');
+    const I_SOUND = svg('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>');
+    const I_FLAG = svg('<path d="M4 22V4s1-1 4-1 5 2 8 2 4-1 4-1v11s-1 1-4 1-5-2-8-2-4 1-4 1"/>');
     const fmt = (x) => (x == null ? "n/a" : Math.round(x * 100) + "%");
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const scoreRow = (label, x) => x == null ? "" :
+      `<div class="score"><span>${label}</span><div class="bar"><i style="width:${Math.round(x * 100)}%"></i></div><b>${fmt(x)}</b></div>`;
+
+    function details(v) {
+      const facts = (v.fact_checks || []).filter((f) => f.match === "match");
+      const reasons = (v.details || []).filter((d) => d !== v.message);
+      if (v.reports?.count) reasons.push(`${v.reports.count} community report(s)`);
+      const s = v.scores;
+      return `<div class="more">
+        ${reasons.length ? `<ul class="reasons">${reasons.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}
+        ${facts.map((f) => `<a class="source" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.publisher || "Fact-checker")}: rated ${esc(f.rating)}</a>`).join("")}
+        ${s ? `<div class="scores">${scoreRow("Deepfake", s.deepfake)}${scoreRow("AI-made", s.ai_generated)}</div>` : ""}
+        ${v.signals_used && !v.signals_used.gemini ? `<div class="note">AI helper off: local checks only</div>` : ""}
+      </div>`;
+    }
 
     function render(v, info) {
       last = { v, info };
       host.style.display = settings.enabled ? "block" : "none";
-      card.className = `card ${v.status} ${settings.largeText ? "large" : ""} ${minimized ? "min" : ""}`;
-      if (minimized) {
-        card.innerHTML = `<div class="head">${ICON[v.status] || "⚪"} ${esc(v.title || "ScrollSafe")}</div>`;
-        card.onclick = () => { minimized = false; render(v, info); };
+      const color = ["green", "yellow", "red"].includes(v.status) ? v.status : "grey";
+      const checking = v.status === "checking";
+      const small = minimized || checking;
+      card.className = `card ${color} ${checking ? "checking" : ""} ${settings.largeText ? "large" : ""} ${small ? "min" : ""}`;
+      if (small) {
+        card.innerHTML = checking
+          ? `<span class="dot"><span class="spin"></span></span>Checking…`
+          : `<span class="dot">${PILL[color]}</span>${esc(v.title || "ScrollSafe")}`;
+        card.onclick = checking ? null : () => { minimized = false; render(v, info); };
+        place();
         return;
       }
       card.onclick = null;
-      if (v.status === "checking") {
-        card.innerHTML = `<div class="head">⏳ Checking this video…<button class="x" title="Hide">✕</button></div>`;
-      } else {
-        const facts = (v.fact_checks || []).filter((f) => f.match === "match");
-        card.innerHTML = `
-          <div class="head">${ICON[v.status] || "⚪"} ${esc(v.title)}<button class="x" title="Make smaller">✕</button></div>
-          <div class="msg">${esc(v.message)}</div>
-          ${expanded ? `<ul>${(v.details || []).filter((d) => d !== v.message).map((d) => `<li>${esc(d)}</li>`).join("")}
-              ${facts.map((f) => `<li><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.publisher)}: ${esc(f.rating)}</a></li>`).join("")}
-              ${v.reports?.count ? `<li>${v.reports.count} community report(s)</li>` : ""}</ul>
-              ${v.scores ? `<div style="font-size:.75em;color:#777;margin-top:6px">Scores: deepfake ${fmt(v.scores.deepfake)}, AI ${fmt(v.scores.ai_generated)}${v.signals_used && !v.signals_used.gemini ? " · AI helper off" : ""}</div>` : ""}` : ""}
-          <div class="row">
-            ${v.status !== "error" ? `<button data-a="why">${expanded ? "Hide details" : "Why?"}</button>` : ""}
-            <button data-a="speak">🔊 Read</button>
-            ${v.status !== "error" ? `<button data-a="report">🚩 Report</button>` : ""}
-          </div>`;
-      }
+      card.innerHTML = `
+        <div class="head">
+          <div class="ico">${ICON[color]}</div>
+          <div><div class="title">${esc(v.title)}</div><div class="brand">ScrollSafe</div></div>
+          <button class="x" title="Make smaller">${I_X}</button>
+        </div>
+        <div class="msg">${esc(v.message)}</div>
+        ${expanded ? details(v) : ""}
+        <div class="row">
+          ${v.status !== "error" ? `<button class="btn dark" data-a="why">${I_INFO}${expanded ? "Hide details" : "Why?"}</button>` : ""}
+          <button class="btn" data-a="speak">${I_SOUND}Read</button>
+          ${v.status !== "error" ? `<button class="btn" data-a="report">${I_FLAG}Report</button>` : ""}
+        </div>`;
       root.querySelector(".x")?.addEventListener("click", (e) => { e.stopPropagation(); minimized = true; render(v, info); });
       root.querySelectorAll("button[data-a]").forEach((b) => b.addEventListener("click", () => action(b.dataset.a, v, info, b)));
       place();
@@ -258,7 +326,7 @@
       if (a === "report") {
         btn.disabled = true;
         const res = await send({ type: "report", platform, videoId: info.videoId, label: "suspicious" });
-        btn.textContent = res.ok ? "✓ Reported, thank you" : "Couldn't report";
+        btn.innerHTML = `${I_FLAG}${res.ok ? "Reported, thank you" : "Couldn't report"}`;
       }
     }
 
@@ -266,7 +334,7 @@
       const v = current?.video;
       if (!v || !v.isConnected) return;
       const r = v.getBoundingClientRect();
-      const w = card.offsetWidth || 280;
+      const w = card.offsetWidth || 330;
       const left = Math.min(Math.max(8, r.left + 12), innerWidth - w - 8);
       const top = Math.min(Math.max(8, r.top + 12), innerHeight - 60);
       host.style.left = left + "px";

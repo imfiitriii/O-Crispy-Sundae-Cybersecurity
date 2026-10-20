@@ -3,66 +3,360 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ScrollSafe: Check a Video</title>
+  <title>ScrollSafe: Check a Photo or Video</title>
   <style>
-    :root { --bg: #f7f7f5; --card: #fff; --text: #1b1b1b; --muted: #555; --border: #ddd; }
-    @media (prefers-color-scheme: dark) { :root { --bg: #151515; --card: #222; --text: #eee; --muted: #aaa; --border: #444; } }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 18px/1.5 system-ui, sans-serif; }
-    main { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
-    h1 { font-size: 30px; margin: 0 0 4px; }
-    p.sub { color: var(--muted); margin: 0 0 24px; }
-    .box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
-    input[type=file] { font-size: 16px; width: 100%; }
-    textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; margin-top: 12px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: inherit; }
-    button { margin-top: 14px; font: inherit; font-weight: 600; padding: 12px 22px; border-radius: 12px; border: 0; background: #0b57d0; color: #fff; cursor: pointer; }
-    button:disabled { opacity: .6; }
-    #result { margin-top: 20px; }
-    .verdict { border-radius: 16px; padding: 18px; border-left: 10px solid #888; background: var(--card); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .green { border-left-color: #1a7f37; } .yellow { border-left-color: #d4a106; } .red { border-left-color: #c62828; }
-    .verdict h2 { margin: 0; font-size: 24px; }
-    .verdict ul { color: var(--muted); font-size: 16px; }
+    :root { --ink: #0f172a; --sub: #475569; --muted: #94a3b8; --line: #e2e8f0; --blue: #2563eb;
+            --green: #16a34a; --green-bg: #f0fdf4; --yellow: #d97706; --yellow-bg: #fffbeb; --red: #dc2626; --red-bg: #fef2f2; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { font-family: Inter, "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; color: var(--ink);
+           background: #f6f8fc; overflow-x: hidden; }
+
+    /* ---------- background (fixed, never blocks clicks) ---------- */
+    .bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; will-change: transform; }
+    .b1 { width: 560px; height: 560px; left: -160px; top: -180px; background: #93c5fd; animation: drift1 26s ease-in-out infinite alternate; }
+    .b2 { width: 500px; height: 500px; right: -160px; top: 20%; background: #c4b5fd; animation: drift2 32s ease-in-out infinite alternate; }
+    .b3 { width: 520px; height: 520px; left: 30%; bottom: -260px; background: #99f6e4; animation: drift3 29s ease-in-out infinite alternate; }
+    @keyframes drift1 { to { transform: translate(120px, 80px); } }
+    @keyframes drift2 { to { transform: translate(-100px, 60px); } }
+    @keyframes drift3 { to { transform: translate(-80px, -70px); } }
+    #dots { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    .page { position: relative; z-index: 1; max-width: 1360px; margin: 0 auto; padding: 22px 32px 48px; }
+    nav { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .logo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; flex: none;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 10px rgba(37,99,235,.3); }
+    .logo svg { width: 22px; height: 22px; }
+    nav b { font-size: 18px; }
+    .chip { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; background: #fff;
+            border: 1px solid var(--line); font-size: 13px; color: var(--sub); }
+    .chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .chip.ok i { background: var(--green); } .chip.part i { background: var(--yellow); } .chip.bad i { background: var(--red); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 430px 400px; gap: 36px; margin-top: 44px; align-items: start; }
+
+    /* ---------- column 1 ---------- */
+    .eyebrow { display: inline-flex; font-size: 13px; font-weight: 600; color: var(--blue); background: #eff6ff; border: 1px solid #dbeafe;
+               padding: 6px 12px; border-radius: 999px; }
+    h1 { font-size: clamp(32px, 3.4vw, 46px); line-height: 1.1; letter-spacing: -.03em; margin: 18px 0 14px; font-weight: 800; }
+    h1 span { background: linear-gradient(90deg, #2563eb, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lead { font-size: 17.5px; line-height: 1.55; color: var(--sub); margin: 0; }
+    .features { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 12px; }
+    .features li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
+    .features .fi { width: 34px; height: 34px; border-radius: 10px; background: #fff; border: 1px solid var(--line); color: var(--blue);
+                    display: grid; place-items: center; flex: none; }
+    .features svg { width: 18px; height: 18px; }
+    .lock { display: flex; align-items: center; gap: 8px; margin-top: 22px; font-size: 13.5px; color: var(--sub); }
+    .lock svg { width: 16px; height: 16px; color: var(--muted); flex: none; }
+
+    /* ---------- column 2: upload panel ---------- */
+    .panel { background: rgba(255,255,255,.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line);
+             border-radius: 20px; padding: 20px; box-shadow: 0 20px 50px rgba(15,23,42,.08); }
+    .step { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin: 0 0 8px; display: block; }
+    .drop { border: 2px dashed #bfdbfe; border-radius: 16px; background: #f8fbff; padding: 16px; display: flex; align-items: center; gap: 14px;
+            cursor: pointer; transition: border-color .15s, background .15s; min-height: 124px; }
+    .drop:hover, .drop.over { border-color: var(--blue); background: #eff6ff; }
+    .drop:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+    .thumb { width: 70px; height: 90px; border-radius: 10px; background: #e2e8f0; display: grid; place-items: center; color: var(--blue); flex: none; overflow: hidden; }
+    .thumb svg { width: 28px; height: 28px; }
+    .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
+    .drop .t { font-weight: 600; font-size: 15px; word-break: break-all; }
+    .drop .d { font-size: 13px; color: var(--sub); margin-top: 2px; }
+    .drop .change { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--blue); }
+    textarea { display: block; width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; font: inherit;
+               font-size: 15px; color: var(--ink); background: #fff; resize: vertical; min-height: 76px; }
+    textarea:focus { outline: 2px solid #93c5fd; border-color: #93c5fd; }
+    .gap { height: 16px; }
+    button { font: inherit; cursor: pointer; }
+    .go { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; margin-top: 16px; background: var(--ink); color: #fff;
+          font-weight: 600; font-size: 16px; padding: 14px 22px; border-radius: 12px; border: 0; }
+    .go:hover { background: #1e293b; }
+    .go:disabled { opacity: .6; cursor: default; }
+    .go svg { width: 18px; height: 18px; }
+    .hint { font-size: 13px; color: var(--muted); text-align: center; margin-top: 10px; }
+    .hint.err { color: var(--red); }
+
+    /* ---------- column 3: result (same look as the extension badge) ---------- */
+    .label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin: 0 0 10px; }
+    .empty { border: 1px dashed #cbd5e1; border-radius: 18px; padding: 26px 22px; color: var(--sub); font-size: 15px; background: rgba(255,255,255,.6); }
+    .empty b { display: block; color: var(--ink); margin-bottom: 4px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px 18px 24px; position: relative; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(15,23,42,.12); --c: var(--muted); --t: #f1f5f9; animation: rise .25s ease-out; }
+    .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--c); }
+    .card.green { --c: var(--green); --t: var(--green-bg); } .card.yellow { --c: var(--yellow); --t: var(--yellow-bg); } .card.red { --c: var(--red); --t: var(--red-bg); }
+    .head { display: flex; align-items: center; gap: 12px; }
+    .ico { width: 42px; height: 42px; border-radius: 12px; background: var(--t); color: var(--c); display: grid; place-items: center; flex: none; }
+    .ico svg { width: 24px; height: 24px; }
+    .title { font-size: 22px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; }
+    .brand { font-size: 11.5px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+    .msg { font-size: 16.5px; line-height: 1.5; margin: 12px 0 0; }
+    .more { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+    .reasons { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; font-size: 14.5px; color: var(--sub); }
+    .reasons li { display: flex; gap: 9px; line-height: 1.45; }
+    .reasons li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); margin-top: 8px; flex: none; }
+    .source { font-size: 14.5px; color: var(--blue); font-weight: 500; text-decoration: none; }
+    .source:hover { text-decoration: underline; }
+    .scores { display: grid; gap: 8px; }
+    .score { display: grid; grid-template-columns: 76px 1fr 40px; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); }
+    .bar { height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+    .bar i { display: block; height: 100%; background: var(--c); border-radius: 4px; }
+    .score b { text-align: right; color: var(--ink); }
+    .note { font-size: 12.5px; color: var(--muted); }
+    .tip { font-size: 14px; line-height: 1.45; color: var(--sub); background: #f1f5f9; border-radius: 12px; padding: 10px 12px; }
+    .tip b { color: var(--ink); }
+    .row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; padding: 8px 13px; border-radius: 10px;
+           border: 1px solid var(--line); background: #fff; color: var(--ink); }
+    .btn:hover { background: #f8fafc; }
+    .btn svg { width: 16px; height: 16px; color: var(--sub); }
+    .btn.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn.dark:hover { background: #1e293b; }
+    .btn.dark svg { color: #cbd5e1; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px;
+            padding: 6px 14px 6px 6px; font-weight: 600; font-size: 14px; box-shadow: 0 6px 16px rgba(15,23,42,.08); }
+    .pill .dot { width: 22px; height: 22px; border-radius: 50%; background: #eff6ff; display: grid; place-items: center; }
+    .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #dbeafe; border-top-color: var(--blue); animation: spin .8s linear infinite; }
+    .pill-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+
+    @media (max-width: 1180px) { .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .intro { grid-column: 1 / -1; } }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; gap: 28px; } .chip { margin-left: 0; } .page { padding: 16px 16px 40px; } }
+    @media (prefers-reduced-motion: reduce) { .blob, .card { animation: none; } .spin { animation-duration: 2s; } }
   </style>
 </head>
 <body>
-<main>
-  <h1>🛡️ ScrollSafe</h1>
-  <p class="sub">Not sure about a photo or video? Upload it and we'll look for signs of deepfakes, AI, scams or false information.</p>
-  <div class="box">
-    <input type="file" id="file" accept="image/*,video/*">
-    <textarea id="caption" rows="2" placeholder="Optional: paste the caption or message that came with it"></textarea>
-    <button id="go">Check it</button>
+<div class="bg" aria-hidden="true">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <canvas id="dots"></canvas>
+</div>
+
+<div class="page">
+  <nav>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+    <b>ScrollSafe</b>
+    <span class="chip" id="health"><i></i><span>Checking server…</span></span>
+  </nav>
+
+  <div class="grid">
+    <!-- 1. intro -->
+    <section class="intro">
+      <span class="eyebrow">Free check, no account needed</span>
+      <h1>Not sure about a video or photo? <span>Check it here.</span></h1>
+      <p class="lead">Upload something you got on WhatsApp, TikTok or Facebook, and get a simple answer in plain words.</p>
+      <ul class="features">
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0 1 18 0"/></svg></span>Deepfake faces</li>
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17v4M17 19h4"/></svg></span>AI-made images and videos</li>
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/></svg></span>Scam and money tricks</li>
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8 11l2 2 4-4"/></svg></span>Fact-checked false claims</li>
+      </ul>
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>We don't keep your file, only the result.</div>
+    </section>
+
+    <!-- 2. upload -->
+    <section class="panel">
+      <span class="step">1 · Choose a file</span>
+      <input type="file" id="file" accept="image/*,video/*" hidden>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a photo or video">
+        <div class="thumb" id="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></svg></div>
+        <div><div class="t" id="fname">Choose a photo or video</div><div class="d" id="fmeta">JPG, PNG, MP4 and more</div><span class="change" id="fchange">Choose file</span></div>
+      </div>
+      <div class="gap"></div>
+      <label class="step" for="caption">2 · Paste the message that came with it (optional)</label>
+      <textarea id="caption" rows="3" placeholder="For example the caption, or the WhatsApp message"></textarea>
+      <button class="go" id="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Check it</button>
+      <div class="hint" id="hint">Or drag a photo or video onto this box</div>
+    </section>
+
+    <!-- 3. result -->
+    <section>
+      <p class="label">Result</p>
+      <div id="result"></div>
+    </section>
   </div>
-  <div id="result"></div>
-</main>
+</div>
+
 <script>
-  const ICON = { green: "🟢", yellow: "🟡", red: "🔴", unknown: "⚪" };
+  const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  document.getElementById("go").onclick = async () => {
-    const file = document.getElementById("file").files[0];
-    const out = document.getElementById("result");
-    if (!file) { out.textContent = "Please choose a photo or video first."; return; }
-    const btn = document.getElementById("go");
-    btn.disabled = true; out.textContent = "⏳ Checking… this can take a few seconds.";
+  const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "#");
+  const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const ICON = {
+    green: svg('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>'),
+    yellow: svg('<circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16.5h.01"/>'),
+    red: svg('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'),
+    grey: svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
+  };
+  const I_AGAIN = svg('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>');
+  const I_SOUND = svg('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>');
+  const EMPTY = `<div class="empty"><b>No file checked yet</b>Choose a photo or video and press Check it. The answer shows up here.</div>`;
+  const UPLOAD_THUMB = $("thumb").innerHTML;
+  $("result").innerHTML = EMPTY;
+
+  // ---------- server status ----------
+  fetch("/health").then((r) => r.json()).then((h) => {
+    $("health").className = "chip " + (h.gemini && h.fact_check ? "ok" : "part");
+    $("health").lastElementChild.textContent = `AI helper ${h.gemini ? "on" : "off"} · Fact-check ${h.fact_check ? "on" : "off"}`;
+  }).catch(() => {
+    $("health").className = "chip bad";
+    $("health").lastElementChild.textContent = "Can't reach the checking server";
+  });
+
+  // ---------- choosing a file ----------
+  let file = null, previewUrl = null;
+  const sizeText = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB");
+  const hint = (text, err = false) => { $("hint").textContent = text; $("hint").className = err ? "hint err" : "hint"; };
+
+  function pick(f) {
+    if (!f) return;
+    if (!/^(image|video)\//.test(f.type)) { hint("Please choose a photo or video.", true); return; }
+    file = f;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(f);
+    const isImage = f.type.startsWith("image/");
+    $("thumb").innerHTML = isImage ? `<img src="${previewUrl}" alt="">` : `<video src="${previewUrl}#t=0.1" muted playsinline preload="metadata"></video>`;
+    $("fname").textContent = f.name;
+    $("fmeta").textContent = `${isImage ? "Image" : "Video"} · ${sizeText(f.size)}`;
+    $("fchange").textContent = "Choose a different file";
+    hint("Or drag a photo or video onto this box");
+  }
+
+  const drop = $("drop");
+  drop.onclick = () => $("file").click();
+  drop.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } };
+  $("file").onchange = (e) => pick(e.target.files[0]);
+  ["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (e) => { e.stopPropagation(); pick(e.dataTransfer.files[0]); });
+  // Dropping anywhere on the page also works.
+  addEventListener("dragover", (e) => e.preventDefault());
+  addEventListener("drop", (e) => { e.preventDefault(); pick(e.dataTransfer.files[0]); });
+
+  // ---------- checking ----------
+  $("go").onclick = async () => {
+    if (!file) { hint("Please choose a photo or video first.", true); return; }
+    const out = $("result");
+    $("go").disabled = true;
+    out.innerHTML = `<span class="pill"><span class="dot"><span class="spin"></span></span>Checking…</span>
+      <div class="pill-note">This can take up to a minute when the AI helper is busy.</div>`;
     const form = new FormData();
     form.append("file", file);
     try {
-      const caption = encodeURIComponent(document.getElementById("caption").value);
+      const caption = encodeURIComponent($("caption").value);
       const res = await fetch("/check-upload?caption=" + caption, { method: "POST", body: form });
       const v = await res.json();
       if (!res.ok) throw new Error(v.detail || "Something went wrong");
-      const facts = (v.fact_checks || []).filter((f) => f.match === "match");
-      out.innerHTML = `<div class="verdict ${esc(v.status)}">
-        <h2>${ICON[v.status] || "⚪"} ${esc(v.title)}</h2>
-        <p>${esc(v.message)}</p>
-        <ul>${(v.details || []).map((d) => `<li>${esc(d)}</li>`).join("")}
-        ${facts.map((f) => `<li><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.publisher)}: ${esc(f.rating)}</a></li>`).join("")}</ul>
-      </div>`;
+      show(v);
     } catch (e) {
-      out.textContent = "Couldn't check this file: " + e.message;
+      show({ status: "error", title: "Couldn't check", message: "Couldn't check this file: " + e.message });
     } finally {
-      btn.disabled = false;
+      $("go").disabled = false;
     }
   };
+
+  const scoreRow = (label, x) => x == null ? "" :
+    `<div class="score"><span>${label}</span><div class="bar"><i style="width:${Math.round(x * 100)}%"></i></div><b>${Math.round(x * 100)}%</b></div>`;
+
+  function show(v) {
+    const color = ["green", "yellow", "red"].includes(v.status) ? v.status : "grey";
+    const facts = (v.fact_checks || []).filter((f) => f.match === "match");
+    const reasons = (v.details || []).filter((d) => d !== v.message);
+    const s = v.scores;
+    const scam = v.status === "red" && /scam|money|transfer|invest|pulangan|wang/i.test([v.message, ...reasons].join(" "));
+    const more = reasons.length || facts.length || s || scam;
+    $("result").innerHTML = `<div class="card ${color}">
+      <div class="head"><div class="ico">${ICON[color]}</div>
+        <div><div class="title">${esc(v.title)}</div><div class="brand">ScrollSafe result</div></div></div>
+      <p class="msg">${esc(v.message)}</p>
+      ${more ? `<div class="more">
+        ${reasons.length ? `<ul class="reasons">${reasons.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}
+        ${facts.map((f) => `<a class="source" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">${esc(f.publisher || "Fact-checker")}: rated ${esc(f.rating)}</a>`).join("")}
+        ${s ? `<div class="scores">${scoreRow("Deepfake", s.deepfake)}${scoreRow("AI-made", s.ai_generated)}</div>` : ""}
+        ${v.signals_used && !v.signals_used.gemini ? `<div class="note">AI helper off: local checks only</div>` : ""}
+        ${v.cached ? `<div class="note">This file was checked before, so this is the saved result.</div>` : ""}
+        ${scam ? `<div class="tip"><b>What to do:</b> don't reply or transfer money. If you're unsure, call the National Scam Response Centre on 997.</div>` : ""}
+      </div>` : ""}
+      <div class="row">
+        <button class="btn dark" id="read">${I_SOUND}Read aloud</button>
+        <button class="btn" id="again">${I_AGAIN}Check another</button>
+      </div>
+    </div>`;
+    $("again").onclick = reset;
+    $("read").onclick = () => {
+      try { speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(`${v.title}. ${v.message}`)); } catch {}
+    };
+  }
+
+  function reset() {
+    file = null;
+    $("file").value = "";
+    $("caption").value = "";
+    $("thumb").innerHTML = UPLOAD_THUMB;
+    $("fname").textContent = "Choose a photo or video";
+    $("fmeta").textContent = "JPG, PNG, MP4 and more";
+    $("fchange").textContent = "Choose file";
+    $("result").innerHTML = EMPTY;
+    hint("Or drag a photo or video onto this box");
+    scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ---------- interactive background: dot grid lit by a spotlight that follows the mouse ----------
+  (() => {
+    const c = $("dots"), x = c.getContext("2d");
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const GAP = 26, R = 240;
+    let w, h, mx = -9999, my = -9999, tx = mx, ty = my, raf = 0;
+    function size() {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      w = innerWidth; h = innerHeight;
+      c.width = w * dpr; c.height = h * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+    function draw() {
+      x.clearRect(0, 0, w, h);
+      if (mx > -999) {  // soft blue glow under the cursor
+        const g = x.createRadialGradient(mx, my, 0, mx, my, R);
+        g.addColorStop(0, "rgba(37,99,235,.10)"); g.addColorStop(1, "rgba(37,99,235,0)");
+        x.fillStyle = g; x.fillRect(mx - R, my - R, R * 2, R * 2);
+      }
+      for (let y = GAP / 2; y < h; y += GAP) for (let X = GAP / 2; X < w; X += GAP) {
+        const k = Math.max(0, 1 - Math.hypot(X - mx, y - my) / R);
+        x.beginPath(); x.arc(X, y, 1.1 + k * 2.2, 0, Math.PI * 2);
+        x.fillStyle = k > 0 ? `rgba(37,99,235,${0.2 + k * 0.55})` : "rgba(15,23,42,.12)";
+        x.fill();
+      }
+    }
+    function loop() {
+      mx += (tx - mx) * 0.18; my += (ty - my) * 0.18;  // trail smoothly behind the mouse
+      draw();
+      raf = Math.abs(tx - mx) + Math.abs(ty - my) > 0.5 ? requestAnimationFrame(loop) : 0;
+    }
+    addEventListener("resize", size);
+    if (!still) {
+      addEventListener("pointermove", (e) => {
+        if (mx < -999) { mx = e.clientX; my = e.clientY; }
+        tx = e.clientX; ty = e.clientY;
+        if (!raf) raf = requestAnimationFrame(loop);
+      });
+      document.documentElement.addEventListener("pointerleave", () => { tx = ty = mx = my = -9999; draw(); });
+    }
+    size();
+  })();
+
+  // Preview hook: open index.html?demo=red|yellow|green|error to see a sample result without the backend.
+  const demo = new URLSearchParams(location.search).get("demo");
+  if (demo) {
+    const base = { scores: { deepfake: 0.07, ai_generated: 0.22 }, signals_used: { gemini: true } };
+    show({
+      red: { ...base, status: "red", title: "Warning", message: "This video uses words that are common in scams. Do not send money or personal details.",
+             details: ["Pulangan dijamin 30% sebulan: guaranteed returns are a scam sign.", "Asks you to message on WhatsApp."],
+             fact_checks: [{ match: "match", publisher: "Medical Dialogues", rating: "False", url: "https://example.org" }] },
+      yellow: { ...base, status: "yellow", title: "Be careful", message: "This video is likely made or edited with AI.", scores: { deepfake: 0.31, ai_generated: 0.78 }, signals_used: { gemini: false } },
+      green: { ...base, status: "green", title: "Looks OK", message: "No warning signs found. Still, stay careful with offers and claims.", details: ["AI helper says: A normal cooking video."] },
+      error: { status: "error", title: "Couldn't check", message: "Couldn't check this file: Could not read any frames from this file" },
+    }[demo] || {});
+  }
 </script>
 </body>
 </html>

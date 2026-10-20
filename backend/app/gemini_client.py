@@ -90,7 +90,13 @@ def analyze(frames: list[Image.Image], caption: str, author: str, labels: list[s
             try:
                 resp = _client().models.generate_content(model=model, contents=[*parts, prompt], config=cfg)
                 data = json.loads(resp.text)
-                return data if isinstance(data, dict) else None
+                # Some models (e.g. flash-lite) wrap the object in a list: [{...}].
+                if isinstance(data, list) and data and isinstance(data[0], dict):
+                    data = data[0]
+                if not isinstance(data, dict):
+                    log.warning("Gemini returned unexpected JSON: %.200s", resp.text)
+                    return None
+                return data
             except Exception as e:  # noqa: BLE001
                 # Only a 400 means the config was rejected; anything else goes to the caller.
                 if i == len(configs) - 1 or getattr(e, "code", None) != 400:

@@ -60,12 +60,14 @@ async def check_claims(claims: list[dict]) -> list[dict]:
         return []
     hits: list[dict] = []
     seen_urls: set[str] = set()
-    async with httpx.AsyncClient(timeout=8) as client:
+    # Key goes in a header, not the URL, so it never shows up in request logs.
+    headers = {"X-Goog-Api-Key": config.FACTCHECK_API_KEY}
+    async with httpx.AsyncClient(timeout=8, headers=headers) as client:
         for claim in claims[:3]:
             queries = {q for q in (claim.get("query_en"), claim.get("query_ms"), claim.get("text")) if q}
             for q in queries:
                 try:
-                    r = await client.get(URL, params={"query": q, "key": config.FACTCHECK_API_KEY, "pageSize": 5})
+                    r = await client.get(URL, params={"query": q, "pageSize": 5})
                     r.raise_for_status()
                 except Exception as e:  # noqa: BLE001
                     log.warning("Fact check query failed: %s", e)

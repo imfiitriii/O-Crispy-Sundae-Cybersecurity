@@ -9,7 +9,7 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
 # Used when the main model is overloaded, rate-limited or too slow. Leave empty in .env to disable.
 GEMINI_FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite").strip()
 # Seconds to wait for one Gemini model before moving on to the backup.
-GEMINI_TIMEOUT_S = float(os.getenv("GEMINI_TIMEOUT_S", "12"))
+GEMINI_TIMEOUT_S = float(os.getenv("GEMINI_TIMEOUT_S", "120"))
 FACTCHECK_API_KEY = os.getenv("FACTCHECK_API_KEY", "").strip()
 
 DEEPFAKE_MODEL = os.getenv("DEEPFAKE_MODEL", "prithivMLmods/Deep-Fake-Detector-v2-Model").strip()

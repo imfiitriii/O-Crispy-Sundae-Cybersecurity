@@ -1,8 +1,16 @@
-# ScrollSafe
+# O-Crispy Sundae - ScrollSafe
 
-**A friendly safety helper for TikTok and Instagram Reels.** While you scroll, a small badge on the video warns you if it may be a deepfake, made by AI, a scam, or spreading false information, in plain words that anyone can understand.
+ScrollSafe warns users of any deepfakes, AI-generated media or false information in user For You Page (FYP) a allow users to upload media and quickly verify whether it contains any deepfakes or AI-generated content.
 
 Built for Codefest by SYNTECHUTP, Track 4: Cybersecurity.
+
+## Two core features :
+
+1. **An AI helper for TikTok and Instagram Reels FYP.** While you scroll, a small badge on the video warns you if it may be a deepfake, made by AI, a scam, or spreading false information, in plain words that anyone can understand.
+
+2. **Deepfake, AI and Content Verification Platform** An app where users can go to upload any picture, video or link with caption to check for deepfake, AI-generated content or false information.
+
+For both feature, every content evaluated will be given a verdict as below :
 
 | Badge | Meaning |
 |---|---|

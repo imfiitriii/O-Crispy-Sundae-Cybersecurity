@@ -78,6 +78,29 @@
     .go:hover { background: #1e293b; }
     .go:disabled { opacity: .6; cursor: default; }
     .go svg { width: 18px; height: 18px; }
+    .tabs { display: flex; padding: 4px; border-radius: 12px; background: #f1f5f9; border: 1px solid var(--line); margin-bottom: 16px; }
+    .tabs button { flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 7px; border: 0; background: none;
+                   font-size: 14px; font-weight: 600; color: var(--sub); padding: 8px 10px; border-radius: 9px; }
+    .tabs button svg { width: 16px; height: 16px; }
+    .tabs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+    .linkrow { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 6px 6px 6px 10px; }
+    .linkrow:focus-within { outline: 2px solid #93c5fd; border-color: #93c5fd; }
+    .plat { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: #f1f5f9; color: var(--muted); flex: none; }
+    .plat svg { width: 17px; height: 17px; }
+    .plat.tiktok { background: #0f172a; color: #fff; }
+    .plat.instagram { background: linear-gradient(135deg, #f59e0b, #ec4899 55%, #8b5cf6); color: #fff; }
+    #url { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; font-size: 15px; color: var(--ink); background: none; padding: 6px 2px; }
+    .paste { border: 1px solid var(--line); background: #f8fafc; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--ink); padding: 7px 11px; }
+    .paste:hover { background: #f1f5f9; }
+    .linknote { font-size: 13px; color: var(--sub); margin-top: 10px; line-height: 1.45; }
+    .src { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px; margin-bottom: 12px;
+           box-shadow: 0 6px 16px rgba(15,23,42,.06); animation: rise .25s ease-out; }
+    .src img { width: 54px; height: 72px; object-fit: cover; border-radius: 8px; background: #e2e8f0; flex: none; }
+    .src .a { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+    .src .a .plat { width: 20px; height: 20px; border-radius: 6px; }
+    .src .a .plat svg { width: 12px; height: 12px; }
+    .src .c { font-size: 13px; color: var(--sub); margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .src a { font-size: 12.5px; color: var(--blue); text-decoration: none; font-weight: 500; }
     .hint { font-size: 13px; color: var(--muted); text-align: center; margin-top: 10px; }
     .hint.err { color: var(--red); }
 
@@ -161,6 +184,20 @@
 
     <!-- 2. upload -->
     <section class="panel">
+      <div class="tabs" role="tablist">
+        <button data-mode="link" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span data-t="tabLink">Paste a link</span></button>
+        <button data-mode="file" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></svg><span data-t="tabFile">Upload a file</span></button>
+      </div>
+      <div id="linkPane">
+        <label class="step" for="url" data-t="linkStep">1 · Paste a TikTok or Instagram Reels link</label>
+        <div class="linkrow">
+          <span class="plat" id="plat"></span>
+          <input id="url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://www.tiktok.com/@…/video/…">
+          <button class="paste" id="paste" type="button" data-t="paste">Paste</button>
+        </div>
+        <div class="linknote" data-t="linkNote">We read the video, its caption and its creator from the link. Private videos can't be checked.</div>
+      </div>
+      <div id="filePane">
       <span class="step" data-t="step1">1 · Choose a file</span>
       <input type="file" id="file" accept="image/*,video/*" hidden>
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a photo or video">
@@ -170,6 +207,7 @@
       <div class="gap"></div>
       <label class="step" for="caption" data-t="step2">2 · Paste the message that came with it (optional)</label>
       <textarea id="caption" rows="3" placeholder="For example the caption, or the WhatsApp message"></textarea>
+      </div>
       <button class="go" id="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg><span data-t="go">Check it</span></button>
       <div class="hint" id="hint">Or drag a photo or video onto this box</div>
     </section>
@@ -216,6 +254,10 @@
       cantCheck: "Couldn't check", failed: "Couldn't check this file: ", wrong: "Something went wrong",
       server: "Checking server…", on: "on", off: "off",
       health: (g, f) => `AI helper ${g} · Fact-check ${f}`, noServer: "Can't reach the checking server",
+      tabLink: "Paste a link", tabFile: "Upload a file", linkStep: "1 · Paste a TikTok or Instagram Reels link", paste: "Paste",
+      linkNote: "We read the video, its caption and its creator from the link. Private videos can't be checked.",
+      linkHint: "Copy the link from the Share button in TikTok or Instagram", noLink: "Please paste a TikTok or Instagram Reels link first.",
+      badLink: "This doesn't look like a TikTok or Instagram link.", pasteFail: "Press Ctrl+V in the box to paste.", openOn: (p) => `Open on ${p}`,
     },
     ms: {
       title: "ScrollSafe: Semak Gambar atau Video",
@@ -237,6 +279,10 @@
       cantCheck: "Tidak dapat disemak", failed: "Fail ini tidak dapat disemak: ", wrong: "Ada masalah",
       server: "Menyemak pelayan…", on: "hidup", off: "mati",
       health: (g, f) => `Pembantu AI ${g} · Semakan fakta ${f}`, noServer: "Tidak dapat menghubungi pelayan semakan",
+      tabLink: "Tampal pautan", tabFile: "Muat naik fail", linkStep: "1 · Tampal pautan TikTok atau Instagram Reels", paste: "Tampal",
+      linkNote: "Kami membaca video, kapsyen dan pembuatnya daripada pautan. Video peribadi tidak boleh disemak.",
+      linkHint: "Salin pautan daripada butang Kongsi di TikTok atau Instagram", noLink: "Sila tampal pautan TikTok atau Instagram Reels dahulu.",
+      badLink: "Ini tidak kelihatan seperti pautan TikTok atau Instagram.", pasteFail: "Tekan Ctrl+V dalam kotak untuk menampal.", openOn: (p) => `Buka di ${p}`,
     },
   };
   let lang = "en";
@@ -255,13 +301,43 @@
     document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
     document.querySelectorAll(".langs button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
     $("caption").placeholder = t("placeholder");
-    showHealth(); showFile(); hint(t("hint")); showView();
+    showHealth(); showFile(); setMode(mode); showView();
   }
   document.querySelectorAll(".langs button").forEach((b) => b.onclick = () => {
     lang = b.dataset.lang;
     try { localStorage.setItem("scrollsafe-lang", lang); } catch {}
     applyLang();
   });
+
+  // ---------- paste a link / upload a file ----------
+  let mode = "link";
+  try { if (localStorage.getItem("scrollsafe-mode") === "file") mode = "file"; } catch {}
+  const PLAT = {
+    tiktok: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.4 7.4 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg>',
+    instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>',
+    none: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+  };
+  const platformOf = (u) => (/tiktok\.com/i.test(u) ? "tiktok" : /instagram\.com/i.test(u) ? "instagram" : null);
+  function showPlat() {
+    const p = platformOf($("url").value);
+    $("plat").className = "plat " + (p || "");
+    $("plat").innerHTML = PLAT[p || "none"];
+  }
+  function setMode(m) {
+    mode = m;
+    try { localStorage.setItem("scrollsafe-mode", m); } catch {}
+    document.querySelectorAll(".tabs button").forEach((b) => { b.classList.toggle("on", b.dataset.mode === m); b.setAttribute("aria-selected", b.dataset.mode === m); });
+    $("linkPane").hidden = m !== "link";
+    $("filePane").hidden = m !== "file";
+    hint(t(m === "link" ? "linkHint" : "hint"));
+  }
+  document.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+  $("url").addEventListener("input", showPlat);
+  $("url").addEventListener("keydown", (e) => { if (e.key === "Enter") $("go").click(); });
+  $("paste").onclick = async () => {
+    try { $("url").value = (await navigator.clipboard.readText()).trim(); showPlat(); $("url").focus(); }
+    catch { $("url").focus(); hint(t("pasteFail")); }
+  };
 
   function showView() {
     if (view.kind === "empty") $("result").innerHTML = `<div class="empty"><b>${t("emptyTitle")}</b>${t("emptyText")}</div>`;
@@ -316,15 +392,23 @@
 
   // ---------- checking ----------
   $("go").onclick = async () => {
-    if (!file) { hint(t("noFile"), true); return; }
+    const url = $("url").value.trim();
+    if (mode === "file" && !file) { hint(t("noFile"), true); return; }
+    if (mode === "link" && !url) { hint(t("noLink"), true); return; }
+    if (mode === "link" && !platformOf(url)) { hint(t("badLink"), true); return; }
     $("go").disabled = true;
     view = { kind: "checking" };
     showView();
-    const form = new FormData();
-    form.append("file", file);
     try {
-      const caption = encodeURIComponent($("caption").value);
-      const res = await fetch(`/check-upload?lang=${lang}&caption=` + caption, { method: "POST", body: form });
+      let res;
+      if (mode === "link") {
+        res = await fetch("/check-link", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, lang }) });
+      } else {
+        const form = new FormData();
+        form.append("file", file);
+        const caption = encodeURIComponent($("caption").value);
+        res = await fetch(`/check-upload?lang=${lang}&caption=` + caption, { method: "POST", body: form });
+      }
       const v = await res.json();
       if (!res.ok) throw new Error(v.detail || t("wrong"));
       view = { kind: "result", v };
@@ -348,7 +432,16 @@
     const s = v.scores;
     const scam = v.status === "red" && /scam|money|transfer|invest|pulangan|wang/i.test([v.message, ...reasons].join(" "));
     const more = reasons.length || facts.length || s || scam;
-    $("result").innerHTML = `<div class="card ${color}">
+    const L = raw.link;
+    const name = L && (L.platform === "tiktok" ? "TikTok" : "Instagram");
+    const source = L ? `<div class="src">
+        ${L.thumbnail ? `<img src="${esc(L.thumbnail)}" alt="">` : ""}
+        <div style="min-width:0">
+          <div class="a"><span class="plat ${esc(L.platform)}">${PLAT[L.platform] || PLAT.none}</span>${L.author ? "@" + esc(L.author) : esc(name)}</div>
+          ${L.caption ? `<div class="c">${esc(L.caption)}</div>` : ""}
+          <a href="${esc(safeUrl(L.url))}" target="_blank" rel="noopener">${esc(t("openOn")(name))}</a>
+        </div></div>` : "";
+    $("result").innerHTML = source + `<div class="card ${color}">
       <div class="head"><div class="ico">${ICON[color]}</div>
         <div><div class="title">${esc(v.title)}</div><div class="brand">${t("brand")}</div></div></div>
       <p class="msg">${esc(v.message)}</p>
@@ -384,6 +477,8 @@
     file = null;
     $("file").value = "";
     $("caption").value = "";
+    $("url").value = "";
+    showPlat();
     $("thumb").innerHTML = UPLOAD_THUMB;
     showFile();
     view = { kind: "empty" };
@@ -439,6 +534,7 @@
   const demo = new URLSearchParams(location.search).get("demo");
   const demoLang = new URLSearchParams(location.search).get("lang");
   if (demoLang === "ms" || demoLang === "en") lang = demoLang;
+  showPlat();
   applyLang();
   if (demo) {
     const base = { scores: { deepfake: 0.07, ai_generated: 0.22 }, signals_used: { gemini: true } };
@@ -450,6 +546,10 @@
                            details: ["Pulangan dijamin 30% sebulan: tanda penipuan.", "Meminta anda menghubungi melalui WhatsApp."] } } },
       yellow: { ...base, status: "yellow", title: "Be careful", message: "This video is likely made or edited with AI.", scores: { deepfake: 0.31, ai_generated: 0.78 }, signals_used: { gemini: false } },
       green: { ...base, status: "green", title: "Looks OK", message: "No warning signs found. Still, stay careful with offers and claims.", details: ["AI helper says: A normal cooking video."] },
+      link: { ...base, status: "green", title: "Looks OK", message: "No warning signs found. Still, stay careful with offers and claims.",
+              details: ["AI helper says: An official public-awareness video about scam calls."],
+              link: { platform: "tiktok", video_id: "7576213116174880018", url: "https://www.tiktok.com/@friendsmcmc/video/7576213116174880018",
+                      author: "friendsmcmc", caption: "#mcmc #friendsofmcmc #fahmifadzil", thumbnail: null } },
       error: { status: "error", title: "Couldn't check", message: "Couldn't check this file: Could not read any frames from this file" },
     }[demo] || {} };
     showView();

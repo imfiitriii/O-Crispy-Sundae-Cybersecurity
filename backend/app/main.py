@@ -1,6 +1,8 @@
 """ScrollSafe backend: checks short videos for deepfakes, AI generation and false information."""
 import asyncio
+import base64
 import hashlib
+import io
 import logging
 import os
 import tempfile
@@ -9,11 +11,13 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image
 from pydantic import BaseModel, Field
 
-from . import config, db, detectors, factcheck, gemini_client, scam_rules, scoring
+import httpx
+
+from . import config, db, detectors, factcheck, gemini_client, links, scam_rules, scoring
 from .imaging import decode_frame, frames_from_video_file, phashes, resize
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -186,6 +190,66 @@ async def check_upload(file: UploadFile = File(...), caption: str = "", lang: st
     result = await run_checks(frames, caption, "", [])
     _save("upload", video_id, result, phashes(frames))
     return _respond("upload", video_id, result, cached=False, lang=lang)
+
+
+class LinkRequest(BaseModel):
+    url: str
+    lang: str = "en"
+    use_gemini: bool = True
+
+
+LINK_ONLY_NOTE = {"en": "Only the cover image and caption were checked, not the whole video.",
+                  "ms": "Hanya gambar muka depan dan kapsyen yang disemak, bukan keseluruhan video."}
+
+
+def _jpeg_data_url(img: Image.Image) -> str:
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=80)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+
+@app.post("/check-link")
+async def check_link(req: LinkRequest):
+    """Check a pasted TikTok or Instagram Reels link with the same pipeline as the extension."""
+    lang = req.lang if req.lang in scoring.LANGS else "en"
+    async with httpx.AsyncClient(timeout=links.TIMEOUT, headers={"User-Agent": links.UA}) as client:
+        try:
+            platform, video_id, url = await links.resolve(req.url, client)
+        except links.LinkError as e:
+            return JSONResponse({"detail": e.i18n[lang]}, status_code=400)
+        # Already checked by the extension (full video), or by an earlier link check.
+        cached = db.get_verdict(platform, video_id) or db.get_verdict("link-" + platform, video_id)
+        try:
+            meta = await links.fetch_meta(platform, url, client)
+        except links.LinkError as e:
+            if cached is None:
+                return JSONResponse({"detail": e.i18n[lang]}, status_code=400)
+            meta = {"caption": "", "author": "", "thumbnail_url": ""}
+        cover = await links.download_image(meta["thumbnail_url"], client)
+        info = {"platform": platform, "video_id": video_id, "url": url, "author": meta["author"],
+                "caption": meta["caption"][:300], "thumbnail": _jpeg_data_url(cover) if cover else None}
+        if cached is not None:
+            return {**_respond(platform, video_id, cached, cached=True, lang=lang), "link": info}
+        frames = await links.video_frames(meta, url, client)
+
+    full_video = bool(frames)
+    if not full_video:
+        frames = [cover] if cover else []
+    if not frames and not meta["caption"]:
+        return JSONResponse({"detail": {"en": "We couldn't get the video or its caption from this link.",
+                                        "ms": "Kami tidak dapat mendapatkan video atau kapsyennya daripada pautan ini."}[lang]},
+                            status_code=400)
+
+    result = await run_checks(frames, meta["caption"], meta["author"], links.labels_from_caption(meta["caption"]), req.use_gemini)
+    if full_video:
+        _save(platform, video_id, result, phashes(frames))
+    else:
+        for code, text in result.get("i18n", {}).items():
+            text["details"] = list(text.get("details", [])) + [LINK_ONLY_NOTE[code]]
+        result["details"] = result["i18n"]["en"]["details"] if "i18n" in result else result.get("details", [])
+        # A cover-only check is weaker than the extension's, so keep it apart: the extension still does a full check.
+        _save("link-" + platform, video_id, result, [])
+    return {**_respond(platform, video_id, result, cached=False, lang=lang), "link": info}
 
 
 @app.get("/")

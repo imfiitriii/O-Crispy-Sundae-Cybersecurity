@@ -14,7 +14,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw
 
-from app import config, db, detectors, factcheck, gemini_client, scam_rules, scoring
+from app import config, db, detectors, factcheck, gemini_client, links, scam_rules, scoring
 
 
 def frame(seed: int) -> str:
@@ -162,3 +162,37 @@ def test_malay_text(client):
     # The same verdict comes back in English by default, and both languages are included.
     en = client.post("/analyze", json=body).json()
     assert en["title"] == "Warning" and en["i18n"]["ms"]["title"] == "Amaran"
+
+
+def test_link_parsing():
+    assert links.parse("https://www.tiktok.com/@some.one/video/7576213116174880018?is_from_webapp=1") == ("tiktok", "7576213116174880018")
+    assert links.parse("https://www.instagram.com/reel/C1a2B3c4D5e/") == ("instagram", "C1a2B3c4D5e")
+    assert links.parse("https://www.instagram.com/someone/p/C1a2B3c4D5e/?igsh=x") == ("instagram", "C1a2B3c4D5e")
+    assert links.parse("https://www.youtube.com/watch?v=abc") is None
+    assert links.labels_from_caption("cool edit #AI #fyp") and not links.labels_from_caption("#fairy #aim")
+
+
+def test_check_link(client, monkeypatch):
+    async def short_link(url, client):  # vm.tiktok.com links are followed to the full link
+        return "tiktok", "7576213116174880018", "https://www.tiktok.com/@a/video/7576213116174880018"
+
+    async def meta(platform, url, client):
+        return {"caption": "Pulangan dijamin 30% sebulan! #ai", "author": "someone", "thumbnail_url": ""}
+
+    async def no_frames(*a):
+        return []
+
+    async def no_image(*a):
+        return None
+
+    monkeypatch.setattr(links, "resolve", short_link)
+    monkeypatch.setattr(links, "fetch_meta", meta)
+    monkeypatch.setattr(links, "video_frames", no_frames)
+    monkeypatch.setattr(links, "download_image", no_image)
+    r = client.post("/check-link", json={"url": "https://vm.tiktok.com/ZSabc/", "lang": "ms"}).json()
+    assert r["status"] == "red" and r["title"] == "Amaran" and r["link"]["author"] == "someone"
+    assert "Hanya gambar muka depan" in r["details"][-1]  # no full video, so only the caption and cover were checked
+
+    monkeypatch.undo()
+    bad = client.post("/check-link", json={"url": "https://www.youtube.com/watch?v=abc"})
+    assert bad.status_code == 400 and "TikTok" in bad.json()["detail"]

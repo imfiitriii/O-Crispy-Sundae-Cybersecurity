@@ -96,9 +96,11 @@ Everything is optional: without keys or models, the remaining checks still run.
 
 After changing extension files, click the reload arrow on ScrollSafe in `chrome://extensions` and refresh the TikTok tab.
 
-### 3. Upload page (optional)
+### 3. Website: check a link or a file (optional)
 
-With the backend running, open http://localhost:8000 to upload a photo or video and check it with the same pipeline. Use the **EN / BM** switch at the top right to change the language.
+With the backend running, open http://localhost:8000. **Paste a link** to a TikTok or Instagram Reels video, or **upload** a photo or video, and it is checked with the same pipeline. Use the **EN / BM** switch at the top right to change the language.
+
+TikTok links are checked from the full video (5 frames, like the extension). Instagram usually hides its pages from visitors who aren't logged in; when that happens the site asks you to upload a screen recording instead.
 
 ### 4. Tests
 
@@ -154,7 +156,8 @@ To use the extension on another laptop, run `ngrok http 8000` and paste the `htt
 ```
 backend/
   app/
-    main.py            API: /analyze, /verdict, /report, /check-upload, /health
+    main.py            API: /analyze, /verdict, /report, /check-upload, /check-link, /health
+    links.py           Reads pasted TikTok / Instagram links (video ID, caption, cover, video)
     config.py          Settings from .env (models, timeouts, thresholds)
     detectors.py       Hugging Face deepfake + AI-image classifiers
     gemini_client.py   One Gemini call per video, with backup model

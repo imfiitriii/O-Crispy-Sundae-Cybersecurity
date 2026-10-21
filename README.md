@@ -91,13 +91,14 @@ Everything is optional: without keys or models, the remaining checks still run.
    - turn ScrollSafe on or off
    - use large text or read warnings aloud
    - switch the **AI helper (Gemini)** on or off (on is more accurate, off is faster)
+   - choose the language: **English** (default) or **Bahasa Melayu**
    - change the server address (for example an ngrok URL)
 
 After changing extension files, click the reload arrow on ScrollSafe in `chrome://extensions` and refresh the TikTok tab.
 
 ### 3. Upload page (optional)
 
-With the backend running, open http://localhost:8000 to upload a photo or video and check it with the same pipeline.
+With the backend running, open http://localhost:8000 to upload a photo or video and check it with the same pipeline. Use the **EN / BM** switch at the top right to change the language.
 
 ### 4. Tests
 

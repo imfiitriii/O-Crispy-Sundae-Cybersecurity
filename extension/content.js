@@ -10,7 +10,28 @@
 
   const platform = location.hostname.includes("tiktok") ? "tiktok" : "instagram";
   const results = new Map();  // videoKey -> verdict (this page only; the backend keeps the shared cache)
-  let settings = { enabled: true, largeText: false, readAloud: false, useGemini: true };
+  let settings = { enabled: true, largeText: false, readAloud: false, useGemini: true, lang: "en" };
+
+  // ---------- languages ----------
+  const STR = {
+    en: {
+      checking: "Checking…", why: "Why?", hide: "Hide details", read: "Read", report: "Report",
+      reported: "Reported, thank you", reportFail: "Couldn't report", smaller: "Make smaller",
+      deepfake: "Deepfake", aiMade: "AI-made", helperOff: "AI helper off: local checks only",
+      reports: (n) => `${n} community report(s)`, rated: (p, r) => `${p || "Fact-checker"}: rated ${r}`,
+      cantCheck: "Couldn't check", serverDown: "The checking server isn't reachable.",
+    },
+    ms: {
+      checking: "Sedang menyemak…", why: "Kenapa?", hide: "Sembunyi", read: "Baca", report: "Laporkan",
+      reported: "Sudah dilaporkan, terima kasih", reportFail: "Tidak dapat melapor", smaller: "Kecilkan",
+      deepfake: "Deepfake", aiMade: "Dibuat AI", helperOff: "Pembantu AI dimatikan: semakan asas sahaja",
+      reports: (n) => `${n} laporan pengguna`, rated: (p, r) => `${p || "Penyemak fakta"}: dinilai ${r}`,
+      cantCheck: "Tidak dapat disemak", serverDown: "Pelayan semakan tidak dapat dihubungi.",
+    },
+  };
+  const t = (k) => (STR[settings.lang] || STR.en)[k];
+  // Verdicts carry their text in both languages (v.i18n); older saved verdicts only have English.
+  const loc = (v) => ({ ...v, ...(v.i18n?.[settings.lang] || {}) });
   let current = null;         // { key, video, since, state }
   let busy = false;
 
@@ -154,7 +175,7 @@
     busy = true;
     try {
       badge.render({ status: "checking" }, info);
-      const lookup = await send({ type: "lookup", platform, videoId: info.videoId });
+      const lookup = await send({ type: "lookup", platform, videoId: info.videoId, lang: settings.lang });
       if (lookup.ok && lookup.data) return finish(info, lookup.data);
 
       const frames = await grabFrames(video, info.key);
@@ -163,10 +184,13 @@
         type: "analyze",
         payload: {
           platform, video_id: info.videoId, caption: info.caption, author: info.author,
-          page_url: location.href, platform_labels: info.labels, frames, use_gemini: settings.useGemini,
+          page_url: location.href, platform_labels: info.labels, frames, use_gemini: settings.useGemini, lang: settings.lang,
         },
       });
-      if (!res.ok) return finish(info, { status: "error", title: "Couldn't check", message: "The checking server isn't reachable." }, false);
+      if (!res.ok) {
+        const i18n = Object.fromEntries(Object.entries(STR).map(([l, s]) => [l, { title: s.cantCheck, message: s.serverDown }]));
+        return finish(info, { status: "error", ...i18n.en, i18n }, false);
+      }
       finish(info, res.data);
     } finally {
       busy = false;
@@ -185,7 +209,14 @@
   function speak(v) {
     try {
       speechSynthesis.cancel();
-      speechSynthesis.speak(new SpeechSynthesisUtterance(`${v.title}. ${v.message}`));
+      const lv = loc(v);
+      const u = new SpeechSynthesisUtterance(`${lv.title}. ${lv.message}`);
+      if (settings.lang === "ms") {
+        u.lang = "ms-MY";
+        const voice = speechSynthesis.getVoices().find((x) => x.lang.toLowerCase().startsWith("ms"));
+        if (voice) u.voice = voice;  // otherwise the browser's default voice is used
+      }
+      speechSynthesis.speak(u);
     } catch {}
   }
 
@@ -276,18 +307,19 @@
     function details(v) {
       const facts = (v.fact_checks || []).filter((f) => f.match === "match");
       const reasons = (v.details || []).filter((d) => d !== v.message);
-      if (v.reports?.count) reasons.push(`${v.reports.count} community report(s)`);
+      if (v.reports?.count) reasons.push(t("reports")(v.reports.count));
       const s = v.scores;
       return `<div class="more">
         ${reasons.length ? `<ul class="reasons">${reasons.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}
-        ${facts.map((f) => `<a class="source" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.publisher || "Fact-checker")}: rated ${esc(f.rating)}</a>`).join("")}
-        ${s ? `<div class="scores">${scoreRow("Deepfake", s.deepfake)}${scoreRow("AI-made", s.ai_generated)}</div>` : ""}
-        ${v.signals_used && !v.signals_used.gemini ? `<div class="note">AI helper off: local checks only</div>` : ""}
+        ${facts.map((f) => `<a class="source" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(t("rated")(f.publisher, f.rating))}</a>`).join("")}
+        ${s ? `<div class="scores">${scoreRow(t("deepfake"), s.deepfake)}${scoreRow(t("aiMade"), s.ai_generated)}</div>` : ""}
+        ${v.signals_used && !v.signals_used.gemini ? `<div class="note">${t("helperOff")}</div>` : ""}
       </div>`;
     }
 
     function render(v, info) {
       last = { v, info };
+      v = loc(v);  // text in the chosen language
       host.style.display = settings.enabled ? "block" : "none";
       const color = ["green", "yellow", "red"].includes(v.status) ? v.status : "grey";
       const checking = v.status === "checking";
@@ -295,7 +327,7 @@
       card.className = `card ${color} ${checking ? "checking" : ""} ${settings.largeText ? "large" : ""} ${small ? "min" : ""}`;
       if (small) {
         card.innerHTML = checking
-          ? `<span class="dot"><span class="spin"></span></span>Checking…`
+          ? `<span class="dot"><span class="spin"></span></span>${t("checking")}`
           : `<span class="dot">${PILL[color]}</span>${esc(v.title || "ScrollSafe")}`;
         card.onclick = checking ? null : () => { minimized = false; render(v, info); };
         place();
@@ -306,14 +338,14 @@
         <div class="head">
           <div class="ico">${ICON[color]}</div>
           <div><div class="title">${esc(v.title)}</div><div class="brand">ScrollSafe</div></div>
-          <button class="x" title="Make smaller">${I_X}</button>
+          <button class="x" title="${t("smaller")}">${I_X}</button>
         </div>
         <div class="msg">${esc(v.message)}</div>
         ${expanded ? details(v) : ""}
         <div class="row">
-          ${v.status !== "error" ? `<button class="btn dark" data-a="why">${I_INFO}${expanded ? "Hide details" : "Why?"}</button>` : ""}
-          <button class="btn" data-a="speak">${I_SOUND}Read</button>
-          ${v.status !== "error" ? `<button class="btn" data-a="report">${I_FLAG}Report</button>` : ""}
+          ${v.status !== "error" ? `<button class="btn dark" data-a="why">${I_INFO}${expanded ? t("hide") : t("why")}</button>` : ""}
+          <button class="btn" data-a="speak">${I_SOUND}${t("read")}</button>
+          ${v.status !== "error" ? `<button class="btn" data-a="report">${I_FLAG}${t("report")}</button>` : ""}
         </div>`;
       root.querySelector(".x")?.addEventListener("click", (e) => { e.stopPropagation(); minimized = true; render(v, info); });
       root.querySelectorAll("button[data-a]").forEach((b) => b.addEventListener("click", () => action(b.dataset.a, v, info, b)));
@@ -326,7 +358,7 @@
       if (a === "report") {
         btn.disabled = true;
         const res = await send({ type: "report", platform, videoId: info.videoId, label: "suspicious" });
-        btn.innerHTML = `${I_FLAG}${res.ok ? "Reported, thank you" : "Couldn't report"}`;
+        btn.innerHTML = `${I_FLAG}${res.ok ? t("reported") : t("reportFail")}`;
       }
     }
 

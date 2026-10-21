@@ -30,8 +30,10 @@ Analyse the frames and text, then return ONLY a JSON object with exactly these k
     {{"text": string, "topic": "health|money|government|news|safety|other", "query_en": string, "query_ms": string}}
   ],                                   // query_en / query_ms: a short search query for the claim in English and Malay. Max 3 claims.
   "scam_signs": [string],              // e.g. "guaranteed returns", "celebrity endorses investment", "asks to message on WhatsApp", "urgent limited offer"; [] if none
+  "scam_signs_ms": [string],           // the same scam signs in simple Bahasa Malaysia, same order
   "misinformation_risk": "none|low|medium|high",
-  "reason_simple": string              // one short sentence (max 25 words) a grandparent can understand. Do not claim certainty.
+  "reason_simple": string,             // one short sentence (max 25 words) a grandparent can understand. Do not claim certainty.
+  "reason_simple_ms": string           // the same sentence in simple, natural Bahasa Malaysia
 }}
 Be calibrated: ordinary videos of real people should get low likelihoods. Do not invent claims."""
 

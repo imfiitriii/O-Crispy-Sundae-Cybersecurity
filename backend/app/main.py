@@ -42,6 +42,7 @@ class AnalyzeRequest(BaseModel):
     platform_labels: list[str] = []
     frames: list[str] = Field(default_factory=list, description="Base64 JPEG/PNG frames (data URLs are fine)")
     use_gemini: bool = True  # the user can turn the slower AI helper off in the extension
+    lang: str = "en"  # "en" or "ms"; the verdict text comes back in this language
 
 
 class ReportRequest(BaseModel):
@@ -62,8 +63,8 @@ def health() -> dict:
     }
 
 
-def _respond(platform: str, video_id: str, result: dict, cached: bool) -> dict:
-    out = scoring.apply_reports(result, db.report_summary(platform, video_id))
+def _respond(platform: str, video_id: str, result: dict, cached: bool, lang: str = "en") -> dict:
+    out = scoring.localize(scoring.apply_reports(result, db.report_summary(platform, video_id)), lang)
     out["cached"] = cached
     out["platform"] = platform
     out["video_id"] = video_id
@@ -71,11 +72,11 @@ def _respond(platform: str, video_id: str, result: dict, cached: bool) -> dict:
 
 
 @app.get("/verdict/{platform}/{video_id}")
-def get_verdict(platform: str, video_id: str) -> dict:
+def get_verdict(platform: str, video_id: str, lang: str = "en") -> dict:
     result = db.get_verdict(platform, video_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Not checked yet")
-    return _respond(platform, video_id, result, cached=True)
+    return _respond(platform, video_id, result, cached=True, lang=lang)
 
 
 async def _skipped() -> None:
@@ -111,7 +112,9 @@ async def run_checks(frames: list[Image.Image], caption: str, author: str, label
     used = result["signals_used"]
     if not (used["gemini"] or used["deepfake_model"] or used["ai_image_model"]) and result["status"] == "green":
         # Nothing actually looked at the video, so don't pretend it's safe.
-        result.update(status="unknown", title="Couldn't check", message="We couldn't check this video right now.")
+        msg = {"en": "We couldn't check this video right now.", "ms": "Kami tidak dapat menyemak video ini sekarang."}
+        i18n = {lang: {"title": scoring.TITLES[lang]["unknown"], "message": msg[lang], "details": []} for lang in scoring.LANGS}
+        result.update(status="unknown", i18n=i18n, **i18n["en"])
     # Only cache complete results, so a Gemini rate limit doesn't freeze a weak verdict forever.
     result["complete"] = used["gemini"] or not gemini_client.available()
     return result
@@ -126,7 +129,7 @@ def _save(platform: str, video_id: str, result: dict, hashes: list[str]) -> None
 async def analyze(req: AnalyzeRequest) -> dict:
     cached = db.get_verdict(req.platform, req.video_id)
     if cached is not None:
-        return _respond(req.platform, req.video_id, cached, cached=True)
+        return _respond(req.platform, req.video_id, cached, cached=True, lang=req.lang)
 
     frames = [f for f in (decode_frame(x) for x in req.frames[: config.MAX_FRAMES]) if f is not None]
     if not frames and not req.caption:
@@ -137,11 +140,11 @@ async def analyze(req: AnalyzeRequest) -> dict:
     if match is not None:
         # Same video re-uploaded under a new ID: reuse the verdict for this ID too.
         db.save_verdict(req.platform, req.video_id, match, hashes)
-        return _respond(req.platform, req.video_id, match, cached=True)
+        return _respond(req.platform, req.video_id, match, cached=True, lang=req.lang)
 
     result = await run_checks(frames, req.caption, req.author, req.platform_labels, req.use_gemini)
     _save(req.platform, req.video_id, result, hashes)
-    return _respond(req.platform, req.video_id, result, cached=False)
+    return _respond(req.platform, req.video_id, result, cached=False, lang=req.lang)
 
 
 @app.post("/report")
@@ -152,7 +155,7 @@ def report(req: ReportRequest) -> dict:
 
 
 @app.post("/check-upload")
-async def check_upload(file: UploadFile = File(...), caption: str = "") -> dict:
+async def check_upload(file: UploadFile = File(...), caption: str = "", lang: str = "en") -> dict:
     """Feature 1: check an uploaded image or video with the same pipeline."""
     data = await file.read()
     if not data:
@@ -160,7 +163,7 @@ async def check_upload(file: UploadFile = File(...), caption: str = "") -> dict:
     video_id = hashlib.sha256(data).hexdigest()[:32]
     cached = db.get_verdict("upload", video_id)
     if cached is not None:
-        return _respond("upload", video_id, cached, cached=True)
+        return _respond("upload", video_id, cached, cached=True, lang=lang)
 
     content_type = file.content_type or ""
     frames: list[Image.Image] = []
@@ -182,7 +185,7 @@ async def check_upload(file: UploadFile = File(...), caption: str = "") -> dict:
 
     result = await run_checks(frames, caption, "", [])
     _save("upload", video_id, result, phashes(frames))
-    return _respond("upload", video_id, result, cached=False)
+    return _respond("upload", video_id, result, cached=False, lang=lang)
 
 
 @app.get("/")

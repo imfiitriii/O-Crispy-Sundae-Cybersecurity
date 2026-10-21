@@ -2,7 +2,7 @@
 // Requests go through here (not the page) so TikTok/Instagram's security rules
 // don't block calls to a localhost or ngrok backend.
 
-const DEFAULTS = { enabled: true, backendUrl: "http://localhost:8000", largeText: false, readAloud: false, useGemini: true };
+const DEFAULTS = { enabled: true, backendUrl: "http://localhost:8000", largeText: false, readAloud: false, useGemini: true, lang: "en" };
 
 async function settings() {
   return { ...DEFAULTS, ...(await chrome.storage.sync.get(Object.keys(DEFAULTS))) };
@@ -33,7 +33,7 @@ async function handle(msg, sender) {
     case "settings":
       return settings();
     case "lookup":
-      return api(`/verdict/${encodeURIComponent(msg.platform)}/${encodeURIComponent(msg.videoId)}`);
+      return api(`/verdict/${encodeURIComponent(msg.platform)}/${encodeURIComponent(msg.videoId)}?lang=${encodeURIComponent(msg.lang || "en")}`);
     case "analyze":
       return api("/analyze", { method: "POST", body: JSON.stringify(msg.payload) });
     case "report":

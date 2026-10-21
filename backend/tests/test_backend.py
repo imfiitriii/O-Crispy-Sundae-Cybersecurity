@@ -153,3 +153,12 @@ def test_gemini_can_be_turned_off(client, monkeypatch):
     assert r["signals_used"]["gemini"] is False and r["status"] == "red"
     # A local-only verdict isn't cached, so turning the helper back on gets a full check.
     assert client.get("/verdict/tiktok/300").status_code == 404
+
+
+def test_malay_text(client):
+    body = {"platform": "tiktok", "video_id": "400", "caption": "Pulangan dijamin 30% sebulan! PM wa.me/60123", "frames": [frame(7)]}
+    r = client.post("/analyze", json=dict(body, lang="ms")).json()
+    assert r["status"] == "red" and r["title"] == "Amaran" and "penipuan" in r["message"]
+    # The same verdict comes back in English by default, and both languages are included.
+    en = client.post("/analyze", json=body).json()
+    assert en["title"] == "Warning" and en["i18n"]["ms"]["title"] == "Amaran"

@@ -34,6 +34,11 @@
     #status.ok::before { background: #16a34a; }
     #status.bad { color: #b91c1c; }
     #status.bad::before { background: #dc2626; }
+    .lang { display: flex; align-items: center; gap: 10px; margin: 0 18px 8px; }
+    .lang .t { font-size: 13px; color: var(--sub); font-weight: 500; white-space: nowrap; }
+    .seg { margin-left: auto; display: inline-flex; padding: 3px; border-radius: 10px; background: #f1f5f9; border: 1px solid var(--line); }
+    .seg button { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--sub); border: 0; background: none; padding: 5px 10px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+    .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(15,23,42,.12); }
   </style>
 </head>
 <body>
@@ -41,19 +46,24 @@
     <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
     <div>
       <h1>ScrollSafe</h1>
-      <p>Warns you about deepfakes, AI videos, scams and false claims.</p>
+      <p data-t="tagline">Warns you about deepfakes, AI videos, scams and false claims.</p>
     </div>
   </header>
+  <div class="lang">
+    <span class="t">Language / Bahasa</span>
+    <input type="hidden" id="lang">
+    <div class="seg"><button data-lang="en">English</button><button data-lang="ms">Melayu</button></div>
+  </div>
   <div class="settings">
-    <label class="row"><span class="t">Turn on ScrollSafe</span><input type="checkbox" id="enabled"></label>
-    <label class="row"><span><span class="t">Large text</span><span class="d">Bigger words on the badge</span></span><input type="checkbox" id="largeText"></label>
-    <label class="row"><span><span class="t">Read warnings aloud</span><span class="d">Speaks red warnings</span></span><input type="checkbox" id="readAloud"></label>
-    <label class="row"><span><span class="t">AI helper (Gemini)</span><span class="d">More accurate, but slower</span></span><input type="checkbox" id="useGemini"></label>
+    <label class="row"><span class="t" data-t="enabled">Turn on ScrollSafe</span><input type="checkbox" id="enabled"></label>
+    <label class="row"><span><span class="t" data-t="large">Large text</span><span class="d" data-t="largeD">Bigger words on the badge</span></span><input type="checkbox" id="largeText"></label>
+    <label class="row"><span><span class="t" data-t="aloud">Read warnings aloud</span><span class="d" data-t="aloudD">Speaks red warnings</span></span><input type="checkbox" id="readAloud"></label>
+    <label class="row"><span><span class="t" data-t="helper">AI helper (Gemini)</span><span class="d" data-t="helperD">More accurate, but slower</span></span><input type="checkbox" id="useGemini"></label>
   </div>
   <footer>
-    <div class="label">Checking server</div>
+    <div class="label" data-t="server">Checking server</div>
     <input type="text" id="backendUrl" placeholder="http://localhost:8000">
-    <div id="status">Checking connection…</div>
+    <div id="status" data-t="connecting">Checking connection…</div>
   </footer>
   <script src="popup.js"></script>
 </body>

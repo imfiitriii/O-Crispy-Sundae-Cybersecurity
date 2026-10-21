@@ -32,6 +32,9 @@
     .chip { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; background: #fff;
             border: 1px solid var(--line); font-size: 13px; color: var(--sub); }
     .chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .langs { display: inline-flex; padding: 3px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+    .langs button { font-size: 12.5px; font-weight: 700; color: var(--sub); border: 0; background: none; padding: 4px 10px; border-radius: 7px; }
+    .langs button.on { background: var(--ink); color: #fff; }
     .chip.ok i { background: var(--green); } .chip.part i { background: var(--yellow); } .chip.bad i { background: var(--red); }
 
     .grid { display: grid; grid-template-columns: minmax(0, 1fr) 430px 400px; gap: 36px; margin-top: 44px; align-items: start; }
@@ -40,7 +43,8 @@
     .eyebrow { display: inline-flex; font-size: 13px; font-weight: 600; color: var(--blue); background: #eff6ff; border: 1px solid #dbeafe;
                padding: 6px 12px; border-radius: 999px; }
     h1 { font-size: clamp(32px, 3.4vw, 46px); line-height: 1.1; letter-spacing: -.03em; margin: 18px 0 14px; font-weight: 800; }
-    h1 span { background: linear-gradient(90deg, #2563eb, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    h1 span.plain { background: none; color: inherit; }
+    h1 span:not(.plain) { background: linear-gradient(90deg, #2563eb, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .lead { font-size: 17.5px; line-height: 1.55; color: var(--sub); margin: 0; }
     .features { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 12px; }
     .features li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
@@ -137,41 +141,42 @@
     <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
     <b>ScrollSafe</b>
     <span class="chip" id="health"><i></i><span>Checking server…</span></span>
+    <span class="langs" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="ms">BM</button></span>
   </nav>
 
   <div class="grid">
     <!-- 1. intro -->
     <section class="intro">
-      <span class="eyebrow">Free check, no account needed</span>
-      <h1>Not sure about a video or photo? <span>Check it here.</span></h1>
-      <p class="lead">Upload something you got on WhatsApp, TikTok or Facebook, and get a simple answer in plain words.</p>
+      <span class="eyebrow" data-t="eyebrow">Free check, no account needed</span>
+      <h1><span data-t="h1a" class="plain">Not sure about a video or photo?</span> <span data-t="h1b">Check it here.</span></h1>
+      <p class="lead" data-t="lead">Upload something you got on WhatsApp, TikTok or Facebook, and get a simple answer in plain words.</p>
       <ul class="features">
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0 1 18 0"/></svg></span>Deepfake faces</li>
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17v4M17 19h4"/></svg></span>AI-made images and videos</li>
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/></svg></span>Scam and money tricks</li>
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8 11l2 2 4-4"/></svg></span>Fact-checked false claims</li>
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0 1 18 0"/></svg></span><span data-t="f1">Deepfake faces</span></li>
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17v4M17 19h4"/></svg></span><span data-t="f2">AI-made images and videos</span></li>
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/></svg></span><span data-t="f3">Scam and money tricks</span></li>
+        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8 11l2 2 4-4"/></svg></span><span data-t="f4">Fact-checked false claims</span></li>
       </ul>
-      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>We don't keep your file, only the result.</div>
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span data-t="lock">We don't keep your file, only the result.</span></div>
     </section>
 
     <!-- 2. upload -->
     <section class="panel">
-      <span class="step">1 · Choose a file</span>
+      <span class="step" data-t="step1">1 · Choose a file</span>
       <input type="file" id="file" accept="image/*,video/*" hidden>
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a photo or video">
         <div class="thumb" id="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></svg></div>
         <div><div class="t" id="fname">Choose a photo or video</div><div class="d" id="fmeta">JPG, PNG, MP4 and more</div><span class="change" id="fchange">Choose file</span></div>
       </div>
       <div class="gap"></div>
-      <label class="step" for="caption">2 · Paste the message that came with it (optional)</label>
+      <label class="step" for="caption" data-t="step2">2 · Paste the message that came with it (optional)</label>
       <textarea id="caption" rows="3" placeholder="For example the caption, or the WhatsApp message"></textarea>
-      <button class="go" id="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Check it</button>
+      <button class="go" id="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg><span data-t="go">Check it</span></button>
       <div class="hint" id="hint">Or drag a photo or video onto this box</div>
     </section>
 
     <!-- 3. result -->
     <section>
-      <p class="label">Result</p>
+      <p class="label" data-t="result">Result</p>
       <div id="result"></div>
     </section>
   </div>
@@ -190,18 +195,90 @@
   };
   const I_AGAIN = svg('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>');
   const I_SOUND = svg('<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>');
-  const EMPTY = `<div class="empty"><b>No file checked yet</b>Choose a photo or video and press Check it. The answer shows up here.</div>`;
+  const STR = {
+    en: {
+      title: "ScrollSafe: Check a Photo or Video",
+      eyebrow: "Free check, no account needed", h1a: "Not sure about a video or photo?", h1b: "Check it here.",
+      lead: "Upload something you got on WhatsApp, TikTok or Facebook, and get a simple answer in plain words.",
+      f1: "Deepfake faces", f2: "AI-made images and videos", f3: "Scam and money tricks", f4: "Fact-checked false claims",
+      lock: "We don't keep your file, only the result.",
+      step1: "1 · Choose a file", step2: "2 · Paste the message that came with it (optional)",
+      placeholder: "For example the caption, or the WhatsApp message", go: "Check it", result: "Result",
+      pickTitle: "Choose a photo or video", pickMeta: "JPG, PNG, MP4 and more", pickBtn: "Choose file", pickAgain: "Choose a different file",
+      image: "Image", video: "Video",
+      hint: "Or drag a photo or video onto this box", notMedia: "Please choose a photo or video.", noFile: "Please choose a photo or video first.",
+      emptyTitle: "No file checked yet", emptyText: "Choose a photo or video and press Check it. The answer shows up here.",
+      checking: "Checking…", slow: "This can take up to a minute when the AI helper is busy.",
+      brand: "ScrollSafe result", deepfake: "Deepfake", aiMade: "AI-made", helperOff: "AI helper off: local checks only",
+      cached: "This file was checked before, so this is the saved result.",
+      tip: "<b>What to do:</b> don't reply or transfer money. If you're unsure, call the National Scam Response Centre on 997.",
+      read: "Read aloud", again: "Check another", rated: (p, r) => `${p || "Fact-checker"}: rated ${r}`,
+      cantCheck: "Couldn't check", failed: "Couldn't check this file: ", wrong: "Something went wrong",
+      server: "Checking server…", on: "on", off: "off",
+      health: (g, f) => `AI helper ${g} · Fact-check ${f}`, noServer: "Can't reach the checking server",
+    },
+    ms: {
+      title: "ScrollSafe: Semak Gambar atau Video",
+      eyebrow: "Semakan percuma, tanpa akaun", h1a: "Ragu-ragu dengan video atau gambar?", h1b: "Semak di sini.",
+      lead: "Muat naik apa sahaja yang anda terima di WhatsApp, TikTok atau Facebook, dan dapatkan jawapan yang mudah difahami.",
+      f1: "Wajah deepfake", f2: "Gambar dan video buatan AI", f3: "Penipuan dan helah wang", f4: "Dakwaan palsu yang telah disemak",
+      lock: "Kami tidak menyimpan fail anda, hanya keputusannya.",
+      step1: "1 · Pilih fail", step2: "2 · Tampal mesej yang datang bersamanya (pilihan)",
+      placeholder: "Contohnya kapsyen, atau mesej WhatsApp", go: "Semak", result: "Keputusan",
+      pickTitle: "Pilih gambar atau video", pickMeta: "JPG, PNG, MP4 dan lain-lain", pickBtn: "Pilih fail", pickAgain: "Pilih fail lain",
+      image: "Gambar", video: "Video",
+      hint: "Atau seret gambar atau video ke kotak ini", notMedia: "Sila pilih gambar atau video.", noFile: "Sila pilih gambar atau video dahulu.",
+      emptyTitle: "Belum ada fail disemak", emptyText: "Pilih gambar atau video dan tekan Semak. Jawapan akan dipaparkan di sini.",
+      checking: "Sedang menyemak…", slow: "Ini boleh mengambil masa sehingga seminit jika pembantu AI sibuk.",
+      brand: "Keputusan ScrollSafe", deepfake: "Deepfake", aiMade: "Dibuat AI", helperOff: "Pembantu AI dimatikan: semakan asas sahaja",
+      cached: "Fail ini pernah disemak, jadi ini keputusan yang disimpan.",
+      tip: "<b>Apa perlu dibuat:</b> jangan balas atau pindahkan wang. Jika tidak pasti, hubungi Pusat Respons Scam Kebangsaan di talian 997.",
+      read: "Bacakan", again: "Semak yang lain", rated: (p, r) => `${p || "Penyemak fakta"}: dinilai ${r}`,
+      cantCheck: "Tidak dapat disemak", failed: "Fail ini tidak dapat disemak: ", wrong: "Ada masalah",
+      server: "Menyemak pelayan…", on: "hidup", off: "mati",
+      health: (g, f) => `Pembantu AI ${g} · Semakan fakta ${f}`, noServer: "Tidak dapat menghubungi pelayan semakan",
+    },
+  };
+  let lang = "en";
+  try { lang = localStorage.getItem("scrollsafe-lang") === "ms" ? "ms" : "en"; } catch {}
+  const t = (k) => STR[lang][k];
+  // Verdicts carry their text in both languages (v.i18n); older saved verdicts only have English.
+  const loc = (v) => ({ ...v, ...(v.i18n?.[lang] || {}) });
+
+  let view = { kind: "empty" };  // what the result column shows: empty | checking | result
+  let health;                    // undefined = still checking, null = unreachable
   const UPLOAD_THUMB = $("thumb").innerHTML;
-  $("result").innerHTML = EMPTY;
+
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = t("title");
+    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
+    document.querySelectorAll(".langs button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
+    $("caption").placeholder = t("placeholder");
+    showHealth(); showFile(); hint(t("hint")); showView();
+  }
+  document.querySelectorAll(".langs button").forEach((b) => b.onclick = () => {
+    lang = b.dataset.lang;
+    try { localStorage.setItem("scrollsafe-lang", lang); } catch {}
+    applyLang();
+  });
+
+  function showView() {
+    if (view.kind === "empty") $("result").innerHTML = `<div class="empty"><b>${t("emptyTitle")}</b>${t("emptyText")}</div>`;
+    if (view.kind === "checking") $("result").innerHTML = `<span class="pill"><span class="dot"><span class="spin"></span></span>${t("checking")}</span>
+      <div class="pill-note">${t("slow")}</div>`;
+    if (view.kind === "result") show(view.v);
+  }
 
   // ---------- server status ----------
-  fetch("/health").then((r) => r.json()).then((h) => {
-    $("health").className = "chip " + (h.gemini && h.fact_check ? "ok" : "part");
-    $("health").lastElementChild.textContent = `AI helper ${h.gemini ? "on" : "off"} · Fact-check ${h.fact_check ? "on" : "off"}`;
-  }).catch(() => {
-    $("health").className = "chip bad";
-    $("health").lastElementChild.textContent = "Can't reach the checking server";
-  });
+  function showHealth() {
+    const label = $("health").lastElementChild;
+    if (health === undefined) { label.textContent = t("server"); return; }
+    if (health === null) { $("health").className = "chip bad"; label.textContent = t("noServer"); return; }
+    $("health").className = "chip " + (health.gemini && health.fact_check ? "ok" : "part");
+    label.textContent = t("health")(t(health.gemini ? "on" : "off"), t(health.fact_check ? "on" : "off"));
+  }
+  fetch("/health").then((r) => r.json()).then((h) => { health = h; showHealth(); }).catch(() => { health = null; showHealth(); });
 
   // ---------- choosing a file ----------
   let file = null, previewUrl = null;
@@ -210,16 +287,20 @@
 
   function pick(f) {
     if (!f) return;
-    if (!/^(image|video)\//.test(f.type)) { hint("Please choose a photo or video.", true); return; }
+    if (!/^(image|video)\//.test(f.type)) { hint(t("notMedia"), true); return; }
     file = f;
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = URL.createObjectURL(f);
     const isImage = f.type.startsWith("image/");
     $("thumb").innerHTML = isImage ? `<img src="${previewUrl}" alt="">` : `<video src="${previewUrl}#t=0.1" muted playsinline preload="metadata"></video>`;
-    $("fname").textContent = f.name;
-    $("fmeta").textContent = `${isImage ? "Image" : "Video"} · ${sizeText(f.size)}`;
-    $("fchange").textContent = "Choose a different file";
-    hint("Or drag a photo or video onto this box");
+    showFile();
+    hint(t("hint"));
+  }
+
+  function showFile() {
+    $("fname").textContent = file ? file.name : t("pickTitle");
+    $("fmeta").textContent = file ? `${t(file.type.startsWith("image/") ? "image" : "video")} · ${sizeText(file.size)}` : t("pickMeta");
+    $("fchange").textContent = t(file ? "pickAgain" : "pickBtn");
   }
 
   const drop = $("drop");
@@ -235,30 +316,32 @@
 
   // ---------- checking ----------
   $("go").onclick = async () => {
-    if (!file) { hint("Please choose a photo or video first.", true); return; }
-    const out = $("result");
+    if (!file) { hint(t("noFile"), true); return; }
     $("go").disabled = true;
-    out.innerHTML = `<span class="pill"><span class="dot"><span class="spin"></span></span>Checking…</span>
-      <div class="pill-note">This can take up to a minute when the AI helper is busy.</div>`;
+    view = { kind: "checking" };
+    showView();
     const form = new FormData();
     form.append("file", file);
     try {
       const caption = encodeURIComponent($("caption").value);
-      const res = await fetch("/check-upload?caption=" + caption, { method: "POST", body: form });
+      const res = await fetch(`/check-upload?lang=${lang}&caption=` + caption, { method: "POST", body: form });
       const v = await res.json();
-      if (!res.ok) throw new Error(v.detail || "Something went wrong");
-      show(v);
+      if (!res.ok) throw new Error(v.detail || t("wrong"));
+      view = { kind: "result", v };
     } catch (e) {
-      show({ status: "error", title: "Couldn't check", message: "Couldn't check this file: " + e.message });
+      const i18n = Object.fromEntries(Object.entries(STR).map(([l, s]) => [l, { title: s.cantCheck, message: s.failed + e.message }]));
+      view = { kind: "result", v: { status: "error", ...i18n.en, i18n } };
     } finally {
       $("go").disabled = false;
     }
+    showView();
   };
 
   const scoreRow = (label, x) => x == null ? "" :
     `<div class="score"><span>${label}</span><div class="bar"><i style="width:${Math.round(x * 100)}%"></i></div><b>${Math.round(x * 100)}%</b></div>`;
 
-  function show(v) {
+  function show(raw) {
+    const v = loc(raw);
     const color = ["green", "yellow", "red"].includes(v.status) ? v.status : "grey";
     const facts = (v.fact_checks || []).filter((f) => f.match === "match");
     const reasons = (v.details || []).filter((d) => d !== v.message);
@@ -267,24 +350,33 @@
     const more = reasons.length || facts.length || s || scam;
     $("result").innerHTML = `<div class="card ${color}">
       <div class="head"><div class="ico">${ICON[color]}</div>
-        <div><div class="title">${esc(v.title)}</div><div class="brand">ScrollSafe result</div></div></div>
+        <div><div class="title">${esc(v.title)}</div><div class="brand">${t("brand")}</div></div></div>
       <p class="msg">${esc(v.message)}</p>
       ${more ? `<div class="more">
         ${reasons.length ? `<ul class="reasons">${reasons.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}
-        ${facts.map((f) => `<a class="source" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">${esc(f.publisher || "Fact-checker")}: rated ${esc(f.rating)}</a>`).join("")}
-        ${s ? `<div class="scores">${scoreRow("Deepfake", s.deepfake)}${scoreRow("AI-made", s.ai_generated)}</div>` : ""}
-        ${v.signals_used && !v.signals_used.gemini ? `<div class="note">AI helper off: local checks only</div>` : ""}
-        ${v.cached ? `<div class="note">This file was checked before, so this is the saved result.</div>` : ""}
-        ${scam ? `<div class="tip"><b>What to do:</b> don't reply or transfer money. If you're unsure, call the National Scam Response Centre on 997.</div>` : ""}
+        ${facts.map((f) => `<a class="source" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">${esc(t("rated")(f.publisher, f.rating))}</a>`).join("")}
+        ${s ? `<div class="scores">${scoreRow(t("deepfake"), s.deepfake)}${scoreRow(t("aiMade"), s.ai_generated)}</div>` : ""}
+        ${v.signals_used && !v.signals_used.gemini ? `<div class="note">${t("helperOff")}</div>` : ""}
+        ${v.cached ? `<div class="note">${t("cached")}</div>` : ""}
+        ${scam ? `<div class="tip">${t("tip")}</div>` : ""}
       </div>` : ""}
       <div class="row">
-        <button class="btn dark" id="read">${I_SOUND}Read aloud</button>
-        <button class="btn" id="again">${I_AGAIN}Check another</button>
+        <button class="btn dark" id="read">${I_SOUND}${t("read")}</button>
+        <button class="btn" id="again">${I_AGAIN}${t("again")}</button>
       </div>
     </div>`;
     $("again").onclick = reset;
     $("read").onclick = () => {
-      try { speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(`${v.title}. ${v.message}`)); } catch {}
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(`${v.title}. ${v.message}`);
+        if (lang === "ms") {
+          u.lang = "ms-MY";
+          const voice = speechSynthesis.getVoices().find((x) => x.lang.toLowerCase().startsWith("ms"));
+          if (voice) u.voice = voice;  // otherwise the browser's default voice is used
+        }
+        speechSynthesis.speak(u);
+      } catch {}
     };
   }
 
@@ -293,11 +385,10 @@
     $("file").value = "";
     $("caption").value = "";
     $("thumb").innerHTML = UPLOAD_THUMB;
-    $("fname").textContent = "Choose a photo or video";
-    $("fmeta").textContent = "JPG, PNG, MP4 and more";
-    $("fchange").textContent = "Choose file";
-    $("result").innerHTML = EMPTY;
-    hint("Or drag a photo or video onto this box");
+    showFile();
+    view = { kind: "empty" };
+    showView();
+    hint(t("hint"));
     scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -346,16 +437,22 @@
 
   // Preview hook: open index.html?demo=red|yellow|green|error to see a sample result without the backend.
   const demo = new URLSearchParams(location.search).get("demo");
+  const demoLang = new URLSearchParams(location.search).get("lang");
+  if (demoLang === "ms" || demoLang === "en") lang = demoLang;
+  applyLang();
   if (demo) {
     const base = { scores: { deepfake: 0.07, ai_generated: 0.22 }, signals_used: { gemini: true } };
-    show({
+    view = { kind: "result", v: {
       red: { ...base, status: "red", title: "Warning", message: "This video uses words that are common in scams. Do not send money or personal details.",
              details: ["Pulangan dijamin 30% sebulan: guaranteed returns are a scam sign.", "Asks you to message on WhatsApp."],
-             fact_checks: [{ match: "match", publisher: "Medical Dialogues", rating: "False", url: "https://example.org" }] },
+             fact_checks: [{ match: "match", publisher: "Medical Dialogues", rating: "False", url: "https://example.org" }],
+             i18n: { ms: { title: "Amaran", message: "Video ini menggunakan kata-kata yang biasa dalam penipuan. Jangan hantar wang atau maklumat peribadi.",
+                           details: ["Pulangan dijamin 30% sebulan: tanda penipuan.", "Meminta anda menghubungi melalui WhatsApp."] } } },
       yellow: { ...base, status: "yellow", title: "Be careful", message: "This video is likely made or edited with AI.", scores: { deepfake: 0.31, ai_generated: 0.78 }, signals_used: { gemini: false } },
       green: { ...base, status: "green", title: "Looks OK", message: "No warning signs found. Still, stay careful with offers and claims.", details: ["AI helper says: A normal cooking video."] },
       error: { status: "error", title: "Couldn't check", message: "Couldn't check this file: Could not read any frames from this file" },
-    }[demo] || {});
+    }[demo] || {} };
+    showView();
   }
 </script>
 </body>
